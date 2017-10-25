@@ -4,5 +4,6 @@ target/*
 Workbook.xlsx
 switchshow.txt
 alishow.txt
+hostlist.txt
 portshow.txt
 user.properties

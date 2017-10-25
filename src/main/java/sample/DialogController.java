@@ -29,7 +29,7 @@ public class DialogController {
 
             String text = dialogTextArea.getText();
             String[] textLines = text.split(System.getProperty("line.separator"));
-            int longestLine = 0;
+            int longestLine = 1;
             for (String line : textLines){
                 if (line.length() > longestLine){
                     longestLine = line.length();

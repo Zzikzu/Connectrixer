@@ -29,6 +29,19 @@ public class ErrorMessage {
         System.err.println(file);
     }
 
+    void fileNotFound(String fileName){
+        String message = "ERROR: File not found!";
+        String file = "File: \"" + fileName + "\"";
+
+        System.out.println();
+        System.out.println(message);
+        System.out.println(file);
+        System.err.println();
+        System.err.println("Error date: " + new Date());
+        System.err.println(message);
+        System.err.println(file);
+    }
+
     public void sshIoError(String host){
         String date = "Error date: " + new Date();
         String message = "ERROR: IO error occurred during ssh connection!";

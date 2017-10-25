@@ -5,19 +5,6 @@ import java.io.*;
 public class FileReadWriter {
     final static private String DIR = "files/";
 
-//    private static FileReadWriter instance;
-//
-//    private FileReadWriter() {
-//
-//    }
-
-//    public static FileReadWriter getInstance() {
-//        if (instance == null) {
-//            instance = new FileReadWriter();
-//        }
-//        return instance;
-//    }
-
     public static String read(String fileName) {
         StringBuilder result = new StringBuilder();
 
@@ -27,6 +14,11 @@ public class FileReadWriter {
                 result.append(inputLine);
                 result.append(System.getProperty("line.separator"));
             }
+
+        }catch (FileNotFoundException e){
+            ErrorMessage.getInstance().fileNotFound(fileName);
+            e.printStackTrace();
+
         } catch (IOException e) {
             ErrorMessage.getInstance().ioError(fileName);
             e.printStackTrace();
@@ -44,6 +36,10 @@ public class FileReadWriter {
             printText.print(input);    // printLine.printf("%s" + "%n", textLine);
             printText.close();
 
+        }catch (FileNotFoundException e){
+            ErrorMessage.getInstance().fileNotFound(fileName);
+            e.printStackTrace();
+
         } catch (IOException e) {
             ErrorMessage.getInstance().ioError(fileName);
             e.printStackTrace();
@@ -60,7 +56,6 @@ public class FileReadWriter {
         }
         return stream;
     }
-
 
     static OutputStream getOutputStream(String fileName){
         OutputStream stream = null;

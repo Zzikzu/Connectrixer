@@ -23,7 +23,7 @@ import java.io.PrintStream;
 import java.net.URL;
 import java.util.Optional;
 
-public class Controller {
+public class MainController {
 
     @FXML
     private Button runButton;
@@ -52,11 +52,13 @@ public class Controller {
 
     public void initialize(){
         redirectOutputStream();
-
         fileOpen.setAccelerator(new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN));
         fileSave.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN));
         fileSaveAs.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN, KeyCombination.ALT_DOWN));
         fileExit.setAccelerator(new KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN));
+
+        System.out.println("Hello!");
+        Connectrix.getInstance().readHostList();
     }
 
     @FXML
@@ -241,6 +243,7 @@ public class Controller {
 
                 String text = controller.getDialogTextArea().getText();
                 FileReadWriter.write(text, fileName, false);
+                Connectrix.getInstance().readHostList();
 
             }
 

@@ -14,14 +14,12 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception{
 
 
-        URL resource = getClass().getClassLoader().getResource("sample.fxml");      //enhanced MVN J8 solution
+        URL resource = getClass().getClassLoader().getResource("main.fxml");      //enhanced MVN J8 solution
         if (resource != null){
             Parent root = FXMLLoader.load(resource);
             primaryStage.setTitle("Connectrixer");
             primaryStage.setScene(new Scene(root, 450, 375));
             primaryStage.setResizable(false);
-
-            System.out.println("Hello!");
 
             primaryStage.show();
         }

@@ -13,8 +13,8 @@ import static core.Patterns.*;
 
 class BrocadeSwitch {
     private String ipAddres;
-//    private SshSession session;
-    private SshSessionFake session;
+    private SshSession session;
+//    private SshSessionFake session;
     private String switchname;
     private String[] portLines;
     private String startIndex;
@@ -29,8 +29,8 @@ class BrocadeSwitch {
     }
 
     void connect() {
-//        session = new SshSession(ipAddres);
-        session = new SshSessionFake(ipAddres);
+        session = new SshSession(ipAddres);
+//        session = new SshSessionFake(ipAddres);
     }
 
     void disconnect() {

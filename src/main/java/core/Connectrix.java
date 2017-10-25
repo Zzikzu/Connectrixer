@@ -15,7 +15,8 @@ import static core.Patterns.*;
 public class Connectrix {
 
     private static Connectrix instance;
-    private Map<String, String> hostList;
+    private String hostList;
+    private Map<String, String> hostListMap;
     private String file = "hostlist.txt";
     private String switchname;
     private String index;
@@ -48,99 +49,103 @@ public class Connectrix {
         System.out.println();
         System.out.println("Process started..");
 
-        readHostList();
+        processHostList();
 
-        String switchIp = "10.250.76.16";
-        BrocadeSwitch sw = new BrocadeSwitch(switchIp);
-        sw.connect();
-        sw.setInitailData();
+        for (Object o : hostListMap.entrySet()) {
+            Map.Entry pair = (Map.Entry) o;
 
-        switchname = sw.getSwitchname();
+            String switchIp = pair.getKey().toString();
+            BrocadeSwitch sw = new BrocadeSwitch(switchIp);
+            sw.connect();
+            sw.setInitailData();
 
-        String portLines[] = sw.getPortlines();
+            switchname = sw.getSwitchname();
 
-        Pattern numPattern = Pattern.compile(ZERO_TO_FOUR_FIGURE_NUMBER);
+            String portLines[] = sw.getPortlines();
 
-
-        for (String line : portLines){
-
-            SwitchPort switchPort;
-            Boolean online = false;
-            Boolean npiv = false;
-            index = "";
-            slot = "";
-            port = "";
-            wwn = "";
-            portname = "";
-            alias = "";
-            comment = "";
+            Pattern numPattern = Pattern.compile(ZERO_TO_FOUR_FIGURE_NUMBER);
 
 
-            Matcher numMatcher = numPattern.matcher(line);
-            if (numMatcher.find()) {
-                index = numMatcher.group(0).replace(" ", "");
+            for (String line : portLines) {
 
-                switchPort = sw.getPort(index);
-                slot = switchPort.getSlot();
-                port = switchPort.getPort();
-                String[] wwns = switchPort.getWwnsConnected();
-                portname = switchPort.getName();
-
-                if (switchPort.getState().equals("Online")) {
-                    online = true;
-                }
-
-                if (line.contains("NPIV")) {
-                    npiv = true;
-                }
+                SwitchPort switchPort;
+                Boolean online = false;
+                Boolean npiv = false;
+                index = "";
+                slot = "";
+                port = "";
+                wwn = "";
+                portname = "";
+                alias = "";
+                comment = "";
 
 
-                if (online){
-                    if (switchPort.getPortFlag().equals(E_PORT)){
-                        line = line.replace("E-Port", E_PORT);
+                Matcher numMatcher = numPattern.matcher(line);
+                if (numMatcher.find()) {
+                    index = numMatcher.group(0).replace(" ", "");
 
-                        Pattern eportPattern = Pattern.compile(E_PORT);
-                        Pattern wwnPattern = Pattern.compile(WWN);
+                    switchPort = sw.getPort(index);
+                    slot = switchPort.getSlot();
+                    port = switchPort.getPort();
+                    String[] wwns = switchPort.getWwnsConnected();
+                    portname = switchPort.getName();
 
-                        Matcher eportMatcher = eportPattern.matcher(line);
-                        if (eportMatcher.find()){
-                            line = line.substring(eportMatcher.end());
-
-                            Matcher wwnMatcher = wwnPattern.matcher(line);
-                            if (wwnMatcher.find()){
-                                wwn = wwnMatcher.group();
-                                comment = line.substring(wwnMatcher.end());
-                            }else {
-                                comment = line;
-                            }
-                            comment = comment
-                                    .replace("master", "MASTER")
-                                    .replace(" ", "");
-                        }
+                    if (switchPort.getState().equals("Online")) {
+                        online = true;
                     }
 
-                    if (switchPort.getPortFlag().equals(F_PORT)){
-                        if (npiv) {
-                            for (String w : wwns) {
-                                wwn = w;
+                    if (line.contains("NPIV")) {
+                        npiv = true;
+                    }
+
+
+                    if (online) {
+                        if (switchPort.getPortFlag().equals(E_PORT)) {
+                            line = line.replace("E-Port", E_PORT);
+
+                            Pattern eportPattern = Pattern.compile(E_PORT);
+                            Pattern wwnPattern = Pattern.compile(WWN);
+
+                            Matcher eportMatcher = eportPattern.matcher(line);
+                            if (eportMatcher.find()) {
+                                line = line.substring(eportMatcher.end());
+
+                                Matcher wwnMatcher = wwnPattern.matcher(line);
+                                if (wwnMatcher.find()) {
+                                    wwn = wwnMatcher.group();
+                                    comment = line.substring(wwnMatcher.end());
+                                } else {
+                                    comment = line;
+                                }
+                                comment = comment
+                                        .replace("master", "MASTER")
+                                        .replace(" ", "");
+                            }
+                        }
+
+                        if (switchPort.getPortFlag().equals(F_PORT)) {
+                            if (npiv) {
+                                for (String w : wwns) {
+                                    wwn = w;
+                                    alias = sw.getAlias(wwn);
+                                }
+                            } else {
+                                if (wwns.length == 1) {
+                                    wwn = wwns[0];
+                                }
                                 alias = sw.getAlias(wwn);
                             }
-                        }else {
-                            if (wwns.length == 1) {
-                                wwn = wwns[0];
-                            }
-                            alias = sw.getAlias(wwn);
                         }
-                    }
 
+                    }
+                    output();
                 }
-                output();
             }
-        }
 
 
 //        ExcelWorkbook.getInstance().saveWorkbook();
-        sw.disconnect();
+            sw.disconnect();
+        }
 
 
         endTime = System.currentTimeMillis();
@@ -159,10 +164,15 @@ public class Connectrix {
 //     System.out.println(switchname + " " + index + " " + slot + " " + port + " " + wwn + " " + portname + " " + alias + " " + comment);
     }
 
-    private void readHostList(){
-        String[] hostListLines = FileReadWriter.read(file).split(System.getProperty("line.separator"));
+    public void readHostList(){
+        hostList = FileReadWriter.read(file);
+    }
+
+
+    private void processHostList(){
+        String[] hostListLines = hostList.split(System.getProperty("line.separator"));
         Pattern ipPattern = Pattern.compile(IP);
-        hostList = new HashMap<>();
+        hostListMap = new HashMap<>();
 
          for (String line : hostListLines){
              Matcher ipMatcher = ipPattern.matcher(line);
@@ -171,11 +181,11 @@ public class Connectrix {
                  String hostName = line.substring(ipMatcher.end()).
                          replace("\t", "").
                          replace(" ", "");
-                 hostList.put(ip, hostName);
+                 hostListMap.put(ip, hostName);
              }
          }
 
-         if (!hostList.isEmpty()){
+         if (!hostListMap.isEmpty()){
              System.out.println();
              System.out.println("Host list loaded");
          }else {

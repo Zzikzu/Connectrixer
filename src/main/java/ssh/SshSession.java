@@ -34,6 +34,7 @@ public class SshSession {
     public void close(){
         session.disconnect();
         if (!session.isConnected()){
+            System.out.println();
             System.out.println("Session closed for: " + user +"@" + host);
         }
     }

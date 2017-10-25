@@ -2,6 +2,7 @@ package core;
 
 class Patterns {
     final static String WWN = "([0-9A-Fa-f]{2}[:]){7}([0-9A-Fa-f]{2})";
+    final static String IP = "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)";
     final static String WWN_ON_SW = "([[:xdigit:]]{1,2}[\\:]){7}[[:xdigit:]]{1,2}";
     final static String ZERO_TO_FOUR_FIGURE_NUMBER = "[0-9]{1,4}";
     final static String PORTINDEX = "portIndex:";

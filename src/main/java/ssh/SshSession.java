@@ -21,9 +21,11 @@ public class SshSession {
         user = "a_sulak.marek";
         String password = "Pel7aaaaaa";
         int port = 22;
+        System.out.println();
         System.out.println("Opening session");
         session = getSession(user, host, port, password);
         if (session.isConnected()){
+            System.out.println();
             System.out.println("Session connected for: " + user +"@" + host);
         }
     }

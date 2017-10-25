@@ -1,22 +1,22 @@
 package io;
 
 import java.io.*;
-import static io.Paths.*;
 
 public class FileReadWriter {
+    final static private String DIR = "files/";
 
-    private static FileReadWriter instance;
+//    private static FileReadWriter instance;
+//
+//    private FileReadWriter() {
+//
+//    }
 
-    private FileReadWriter() {
-
-    }
-
-    public static FileReadWriter getInstance() {
-        if (instance == null) {
-            instance = new FileReadWriter();
-        }
-        return instance;
-    }
+//    public static FileReadWriter getInstance() {
+//        if (instance == null) {
+//            instance = new FileReadWriter();
+//        }
+//        return instance;
+//    }
 
     public static String read(String fileName) {
         StringBuilder result = new StringBuilder();
@@ -37,7 +37,7 @@ public class FileReadWriter {
 
 
 
-    static void write(String input, String fileName, boolean append) {
+    public static void write(String input, String fileName, boolean append) {
 
         try (PrintWriter printText = new PrintWriter(new FileWriter(DIR + fileName, append))) {    //append to file
 

@@ -38,15 +38,19 @@ class BrocadeSwitch {
     }
 
     void setInitailData() {
+        System.out.println();
         System.out.println("Setting Switch initial data");
 
         setSwitchshow();
+        System.out.println();
         System.out.println("switchshow done");
 
         setSwitchPorts(startIndex, endIndex);
+        System.out.println();
         System.out.println("portshow done");
 
         setAlishow();
+        System.out.println();
         System.out.println("alishow done");
     }
 

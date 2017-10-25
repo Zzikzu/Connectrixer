@@ -1,10 +1,7 @@
 package sample;
 
 import core.Connectrix;
-import io.ErrorLog;
-import io.ErrorOutputStream;
-import io.ExcelWorkbook;
-import io.UserProperty;
+import io.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -187,7 +184,7 @@ public class Controller {
 
     @FXML
     public void onEditHostListClicked(){
-        showDialog("hostList.txt", "Host List", true, true);
+        showDialog("hostlist.txt", "Host List", true, true);
     }
 
     @FXML
@@ -206,39 +203,47 @@ public class Controller {
         showDialog("about.txt", "About program", false, false);
     }
 
-    private void showDialog(String fileName, String title, Boolean isEditable ,  Boolean hasCancelButton){
+    private void showDialog(String fileName, String title, Boolean isEditable, Boolean hasCancelButton) {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.initOwner(mainWindow.getScene().getWindow());
 
         DialogSettings.getInstance().setEditable(isEditable);
         DialogSettings.getInstance().setFileToRead(fileName);
 
+        FXMLLoader fxmlLoader = new FXMLLoader();
+        fxmlLoader.setLocation(getClass().getClassLoader().getResource("dialog.fxml"));
+
+
         try {
-            URL resource = getClass().getClassLoader().getResource("dialog.fxml");
-            if (resource != null){
-                Parent root = FXMLLoader.load(resource);
-
-                dialog.getDialogPane().setContent(root);
-                dialog.setTitle(title);
-
-            }else {
-                System.out.println("resource is null");
-                return;
-            }
-
-        }catch (IOException e){
+            dialog.getDialogPane().setContent(fxmlLoader.load());
+        } catch (IOException e) {
+            ErrorMessage.getInstance().customMeassage("Couldn't load the dialog window");
             e.printStackTrace();
             return;
         }
 
+        DialogController controller = fxmlLoader.getController();
+        controller.setFileName(fileName);
+        controller.setEditable(isEditable);
+
+
+        dialog.setTitle(title);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
-        if (hasCancelButton){
+
+        if (hasCancelButton) {
             dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
         }
 
         Optional<ButtonType> result = dialog.showAndWait();
+
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            System.out.println("ok");
+            if (fileName.equals("hostlist.txt")) {
+
+                String text = controller.getDialogTextArea().getText();
+                FileReadWriter.write(text, fileName, false);
+
+            }
+
         }
     }
 

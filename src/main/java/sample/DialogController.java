@@ -10,7 +10,11 @@ public class DialogController {
     private boolean isEditable = DialogSettings.getInstance().isEditable();
 
     @FXML
-    private TextArea textArea;
+    private TextArea dialogTextArea;
+
+    TextArea getDialogTextArea() {
+        return dialogTextArea;
+    }
 
     @FXML
     private DialogPane dialogPane;
@@ -20,10 +24,10 @@ public class DialogController {
         double prefWidth = 375.0;
 
         if (fileName != null){
-            textArea.setText(FileReadWriter.read(fileName));
-            textArea.setEditable(isEditable);
+            dialogTextArea.setText(FileReadWriter.read(fileName));
+            dialogTextArea.setEditable(isEditable);
 
-            String text = textArea.getText();
+            String text = dialogTextArea.getText();
             String[] textLines = text.split(System.getProperty("line.separator"));
             int longestLine = 0;
             for (String line : textLines){
@@ -37,11 +41,19 @@ public class DialogController {
                 prefWidth = textWidth;
             }
 
-            textArea.setPrefWidth(prefHeight);
-            textArea.setPrefWidth(prefWidth);
+            dialogTextArea.setPrefWidth(prefHeight);
+            dialogTextArea.setPrefWidth(prefWidth);
 
             dialogPane.setPrefWidth(prefHeight);
             dialogPane.setPrefWidth(prefWidth);
         }
+    }
+
+    void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    void setEditable(boolean editable) {
+        isEditable = editable;
     }
 }

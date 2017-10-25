@@ -12,28 +12,30 @@ public class SshSessionFake {
         user = "a_sulak.marek";
         String password = "Pel7aaaaaa";
         int port = 22;
+        System.out.println();
         System.out.println("Opening session");
         System.out.println("Session connected for: " + user + "@" + host);
     }
 
 
     public void close(){
-            System.out.println("Session closed for: " + user +"@" + host);
+        System.out.println();
+        System.out.println("Session closed for: " + user +"@" + host);
     }
 
     public String execute(String command){
         String result = "";
 
         if (command.equals("switchshow")){
-            result = FileReadWriter.getInstance().read("switchshow.txt");
+            result = FileReadWriter.read("switchshow.txt");
         }
 
         if (command.equals("alishow *")){
-            result = FileReadWriter.getInstance().read("alishow.txt");
+            result = FileReadWriter.read("alishow.txt");
         }
 
         if (command.contains("portshow -i")){
-            result = FileReadWriter.getInstance().read("portshow.txt");
+            result = FileReadWriter.read("portshow.txt");
         }
 
         return result;

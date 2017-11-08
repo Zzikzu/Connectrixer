@@ -1,9 +1,8 @@
 package core;
 
-import ssh.SshSession;
-import ssh.SshSessionFake;
 import org.unix4j.Unix4j;
 import org.unix4j.unix.grep.GrepOption;
+import ssh.SshSession;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -13,6 +12,7 @@ import static core.Patterns.*;
 
 class BrocadeSwitch {
     private String ipAddres;
+    private String hostname;
     private SshSession session;
 //    private SshSessionFake session;
     private String switchname;
@@ -24,34 +24,35 @@ class BrocadeSwitch {
     private Map<String, SwitchPort> portMap;
 
 
-    BrocadeSwitch(String ipAddres) {
+    BrocadeSwitch(String ipAddres, String hostname) {
         this.ipAddres = ipAddres;
+        this.hostname = hostname;
     }
 
     void connect() {
-        session = new SshSession(ipAddres);
+        session = new SshSession(ipAddres, hostname);
 //        session = new SshSessionFake(ipAddres);
     }
 
     void disconnect() {
+        echo("closing session");
         session.close();
+
     }
 
     void setInitailData() {
-        System.out.println();
-        System.out.println("Setting Switch initial data");
+        echo("setting switch initial data");
 
         setSwitchshow();
-        System.out.println();
-        System.out.println("switchshow done");
+        echo("switchshow done");
 
         setSwitchPorts(startIndex, endIndex);
-        System.out.println();
-        System.out.println("portshow done");
+        echo("portshow done");
 
         setAlishow();
-        System.out.println();
-        System.out.println("alishow done");
+        echo("alishow done");
+
+        echo("initial data set");
     }
 
 
@@ -78,6 +79,13 @@ class BrocadeSwitch {
                 .toStringResult()
                 .replace(SWITCHNAME, "")
                 .replace("\t", "");
+
+        if (!hostname.toUpperCase().equals(switchname.toUpperCase())){
+            echo("WARNING!");
+            echo("hostname " + hostname + " do not match switchname " + switchname);
+            echo("please check your host list");
+            hostname = String.valueOf(switchname);
+        }
 
         if (switchshow != null) {
             portLines = Unix4j.fromString(switchshow)
@@ -335,6 +343,10 @@ class BrocadeSwitch {
                 wwn = null;
             }
         }
+    }
+
+    private void echo(String meassage){
+        System.out.println(hostname + ": " + meassage);
     }
 
 

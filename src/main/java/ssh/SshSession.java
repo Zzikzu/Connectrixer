@@ -8,25 +8,25 @@ import java.io.InputStream;
 
 public class SshSession {
     private Session session;
-    private String host;
+    private String ip;
+    private String hostname;
     private String user;
     private JSch jsch;
 //    private String password;
 //    private int port;
 
 
-    public SshSession(String host) {
+    public SshSession(String ip, String hostname) {
         jsch = new JSch();
-        this.host = host;
-        user = "a_sulak.marek";
-        String password = "Pel7aaaaaa";
+        this.ip = ip;
+        this.hostname = hostname;
+        user = "a_kravec.miroslav";
+        String password = "Hraskova9*";
         int port = 22;
-        System.out.println();
-        System.out.println("Opening session");
-        session = getSession(user, host, port, password);
+        echo("Opening session for: " + ip + " - " + hostname);
+        session = getSession(user, ip, port, password);
         if (session.isConnected()){
-            System.out.println();
-            System.out.println("Session connected for: " + user +"@" + host);
+            echo("Session connected for: " + user +"@" + ip);
         }
     }
 
@@ -34,8 +34,7 @@ public class SshSession {
     public void close(){
         session.disconnect();
         if (!session.isConnected()){
-            System.out.println();
-            System.out.println("Session closed for: " + user +"@" + host);
+            echo("Session closed for: " + user +"@" + ip + " - " + hostname);
         }
     }
 
@@ -72,12 +71,12 @@ public class SshSession {
                 channel.disconnect();
 
             }catch (IOException e){
-                ErrorMessage.getInstance().sshIoError(host);
+                ErrorMessage.getInstance().sshIoError(ip);
                 e.printStackTrace();
             }
 
         }catch (JSchException e){
-            ErrorMessage.getInstance().sshChanelError(host, command);
+            ErrorMessage.getInstance().sshChanelError(ip, command);
             e.printStackTrace();
         }
 
@@ -100,5 +99,11 @@ public class SshSession {
             e.printStackTrace();
         }
         return session;
+    }
+
+    private void echo(String message){
+        System.out.println("****************************************************************");
+        System.out.println(message);
+        System.out.println("****************************************************************");
     }
 }

@@ -5,10 +5,7 @@ import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 public class ExcelWorkbook {
 
@@ -17,6 +14,7 @@ public class ExcelWorkbook {
     private ExcelWorksheet reserved;
     private boolean workbookLoaded = false;
     private String fileName;
+    private boolean inFrozenState;
 
 
 
@@ -75,7 +73,9 @@ public class ExcelWorkbook {
 //            System.out.println(fileName);
             System.out.println(filePath);
             System.out.println("To continue please reload your workBook.");
-
+        } catch (FileNotFoundException e){
+            ErrorMessage.getInstance().fileNotFound(filePath);
+            e.printStackTrace();
         } catch (IOException e) {
             ErrorMessage.getInstance().ioError(filePath);
             e.printStackTrace();
@@ -99,6 +99,22 @@ public class ExcelWorkbook {
 
     public void setFilePath(String filePath) {
         this.filePath = filePath;
+    }
+
+    public boolean isInFrozenState() {
+        return inFrozenState;
+    }
+
+    public void setInFrozenState(boolean inFrozenState, String switchName) {
+        if (inFrozenState){
+            System.out.println(switchName + " is freezing workbook");
+        }
+
+        if (!inFrozenState){
+            System.out.println(switchName + " is unfreezing workbook");
+        }
+
+        this.inFrozenState = inFrozenState;
     }
 
     //===============================================================================================================

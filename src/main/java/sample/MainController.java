@@ -244,6 +244,7 @@ public class MainController {
                 String text = controller.getDialogTextArea().getText();
                 FileReadWriter.write(text, fileName, false);
                 Connectrix.getInstance().readHostList();
+                System.out.println("Host list updated");
 
             }
 

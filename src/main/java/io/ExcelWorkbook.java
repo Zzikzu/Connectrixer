@@ -4,8 +4,13 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.*;
-
 import java.io.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 public class ExcelWorkbook {
 
@@ -13,13 +18,9 @@ public class ExcelWorkbook {
     private XSSFWorkbook workBook;
     private ExcelWorksheet reserved;
     private boolean workbookLoaded = false;
-    private String fileName;
     private boolean inFrozenState;
-
-
-
+    private int maxReservedCount = 5;
     private String filePath;
-
 
     public static ExcelWorkbook getInstance() {
         if (instance == null){
@@ -36,12 +37,10 @@ public class ExcelWorkbook {
         System.out.println("..loading, please wait");
 
         try {
-//            workBook = new XSSFWorkbook(new FileInputStream(DIR + fileName));
             workBook = new XSSFWorkbook(new FileInputStream(filePath));
             System.out.println();
             System.out.println("File loaded:");
             System.out.println(filePath);
-//            System.out.println(DIR + fileName);
 
             reserved = new ExcelWorksheet("Reserved");
             workbookLoaded = true;
@@ -66,11 +65,9 @@ public class ExcelWorkbook {
         reserved.consolidateSheet();
 
         try {
-//            workBook.write(new FileOutputStream(DIR + fileName));
             workBook.write(new FileOutputStream(filePath));
             System.out.println();
             System.out.println("File saved:");
-//            System.out.println(fileName);
             System.out.println(filePath);
             System.out.println("To continue please reload your workBook.");
         } catch (FileNotFoundException e){
@@ -84,17 +81,8 @@ public class ExcelWorkbook {
         }
     }
 
-    public void seveWorkbookAs(File file){
-        filePath = file.getPath();
-        saveWorkbook();
-    }
-
     public boolean isWorkbookLoaded() {
         return workbookLoaded;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
     }
 
     public void setFilePath(String filePath) {
@@ -117,6 +105,15 @@ public class ExcelWorkbook {
         this.inFrozenState = inFrozenState;
     }
 
+    public int getMaxReservedCount() {
+        return maxReservedCount;
+    }
+
+    public void setMaxReservedCount(int maxReservedCount) {
+        this.maxReservedCount = maxReservedCount;
+    }
+
+
     //===============================================================================================================
 
     private class ExcelWorksheet extends XSSFSheet{
@@ -125,13 +122,38 @@ public class ExcelWorkbook {
         private int rowCount;
         private XSSFRow headerRow;
         private String sheetName;
+        private DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+        private List<String> sheetNameList;
 
         private ExcelWorksheet(String name) {
-            sheet = workBook.getSheet(name);
-            if(sheet == null){
-                sheet = workBook.createSheet(name);
+            String date = dateFormat.format(new Date());
+
+            int lastReservedSheetIndex;
+
+            sheetNameList = new ArrayList<>();
+            sheetNameList.clear();
+
+            for (XSSFSheet sheet : workBook){
+                String sheetName = workBook.getSheetName(workBook.getSheetIndex(sheet));
+                if (sheetName.contains(name)){
+                    sheetNameList.add(sheet.getSheetName());
+                }
             }
-            sheetName = name;
+
+            sheet = workBook.createSheet(name + "_" + date);
+
+            if (!sheetNameList.isEmpty()){
+                sheetNameList.sort(Collections.reverseOrder());
+                lastReservedSheetIndex = workBook.getSheetIndex(sheetNameList.get(0));
+
+                if (sheetNameList.size() >= maxReservedCount){
+                    workBook.removeSheetAt(lastReservedSheetIndex);
+                }
+
+                workBook.setSheetOrder(sheet.getSheetName(), lastReservedSheetIndex);
+            }
+
+            sheetName = sheet.getSheetName();
             rowCount = 0;
             setHeader();
         }

@@ -9,6 +9,7 @@ import core.BrocadeSwitch.SwitchPort;
 import io.ErrorMessage;
 import io.ExcelWorkbook;
 import io.FileReadWriter;
+import io.UserProperties;
 
 import static core.Patterns.*;
 
@@ -18,11 +19,10 @@ public class Connectrix {
     private String hostList;
     private Map<String, String> hostListMap;
     private String file = "hostlist.txt";
-    private long startTime;
-    private long endTime;
     private int swCount;
     private boolean connectrixIsRunning;
-    private static int swDoneCount = 0;
+    private static int swDoneCount;
+    private int runningSessions;
 
 
     private Connectrix() {
@@ -37,19 +37,34 @@ public class Connectrix {
     }
 
     public void start() {
-        startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         connectrixIsRunning = true;
         int processId = 0;
+        runningSessions = 0;
+        int waitTime = 30;
 
         echo("Process started..", true, false);
 
-        processHostList();
+        int sessionMaxCount = UserProperties.getInstance().getSessionCount();
         swDoneCount = 0;
 
         for (Object o : hostListMap.entrySet()) {
             Map.Entry pair = (Map.Entry) o;
 
+
+            while (runningSessions >= sessionMaxCount){
+                System.out.println("Max session count reached, waiting " + waitTime + " sec");
+                try {
+                    Thread.sleep(waitTime * 1000);
+                }catch (InterruptedException e){
+                    e.printStackTrace();
+                }
+                System.out.println("Trying to start new session");
+            }
+
             processId++;
+            runningSessions++;
+
             final int pid = processId;
             String switchIp = pair.getKey().toString();
             String swHostname = pair.getValue().toString();
@@ -74,13 +89,13 @@ public class Connectrix {
             }catch (InterruptedException e){
                 e.printStackTrace();
             }
-            tryToEnd();
+            tryToEnd(startTime);
         } while (connectrixIsRunning);
     }
 
-    private void tryToEnd(){
+    private void tryToEnd(long startTime){
         if (swDoneCount == swCount){
-            endTime = System.currentTimeMillis();
+            long endTime = System.currentTimeMillis();
             echo("Runtime: " + (endTime - startTime)/1000 + " sec", true, false);
             echo("Don't forget to save your workbook.", false, true);
             connectrixIsRunning = false;
@@ -88,15 +103,23 @@ public class Connectrix {
     }
 
 
-    private void writeLineToWorkbook(int id, String switchname, String index, String slot, String port, String wwn, String portname, String alias, String comment){
-        //todo change to excel writeLineToWorkbook
+    private void writeLineToWorkbook(String switchname, String index, String slot, String port, String wwn, String portname, String alias, String comment){
         String[] outputs ={switchname, index, slot, port, wwn, portname, alias, comment};
         ExcelWorkbook.getInstance().writeLineToReserved(outputs);
-        System.out.println("Process: " + id +" " + switchname + ": Writing line Slot: " + slot + " Port: " + port);
     }
 
     public void readHostList(){
         hostList = FileReadWriter.read(file);
+        if (hostList == null){
+            FileReadWriter.write("", file, false);
+            ErrorMessage.getInstance().customWarninng("File " + file + " probably don't exits");
+            System.out.println("Creating empty host list");
+            hostList = FileReadWriter.read(file);
+        }
+
+        if (hostList != null){
+            processHostList();
+        }
     }
 
 
@@ -105,7 +128,21 @@ public class Connectrix {
         Pattern ipPattern = Pattern.compile(IP);
         hostListMap = new HashMap<>();
 
+
+
          for (String line : hostListLines){
+             if (line.contains("#")){
+                 StringBuilder sb = new StringBuilder();
+
+                 for (char c : line.toCharArray()){
+                     if (c == '#'){
+                         break;
+                     }
+                     sb.append(c);
+                 }
+                 line = sb.toString();
+             }
+
              Matcher ipMatcher = ipPattern.matcher(line);
              if (ipMatcher.find()){
                  String ip = ipMatcher.group();
@@ -117,10 +154,11 @@ public class Connectrix {
          }
 
          if (!hostListMap.isEmpty()){
-             echo("Host list loaded", false, true);
+             echo("Host list loaded", true, false);
              swCount = hostListMap.size();
          }else {
-             ErrorMessage.getInstance().customMeassage("Host list not loaded, probably empty file: " + file);
+             ErrorMessage.getInstance().customWarninng("Host list not loaded, probably empty file: " + file + " or no valid entries found");
+             System.out.println("Please run: Edit => Host list");
          }
     }
 
@@ -245,19 +283,19 @@ public class Connectrix {
                                 for (String w : wwns) {
                                     wwn = w;
                                     alias = sw.getAlias(wwn);
-                                    writeLineToWorkbook(id, switchname, index, slot, port, wwn, portname, alias, comment);
+                                    writeLineToWorkbook(switchname, index, slot, port, wwn, portname, alias, comment);
                                 }
                             } else {
                                 if (wwns.length == 1) {
                                     wwn = wwns[0];
                                 }
                                 alias = sw.getAlias(wwn);
-                                writeLineToWorkbook(id, switchname, index, slot, port, wwn, portname, alias, comment);
+                                writeLineToWorkbook(switchname, index, slot, port, wwn, portname, alias, comment);
                             }
                         }
                     }
                     if (!npiv){
-                        writeLineToWorkbook(id, switchname, index, slot, port, wwn, portname, alias, comment);
+                        writeLineToWorkbook(switchname, index, slot, port, wwn, portname, alias, comment);
                     }
                 }
             }
@@ -265,6 +303,7 @@ public class Connectrix {
             ExcelWorkbook.getInstance().setInFrozenState(false, switchname);
             sw.disconnect();
             swDoneCount++;
+            runningSessions--;
         }
     }
 }

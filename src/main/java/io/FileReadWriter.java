@@ -6,14 +6,16 @@ public class FileReadWriter {
     final static private String DIR = "files/";
 
     public static String read(String fileName) {
-        StringBuilder result = new StringBuilder();
+        String result = null;
+        StringBuilder sb = new StringBuilder();
 
         try (BufferedReader br = new  BufferedReader(new FileReader(DIR + fileName))) {
             String inputLine;
             while ((inputLine = br.readLine()) != null) {
-                result.append(inputLine);
-                result.append(System.getProperty("line.separator"));
+                sb.append(inputLine);
+                sb.append(System.getProperty("line.separator"));
             }
+            result = sb.toString();
 
         }catch (FileNotFoundException e){
             ErrorMessage.getInstance().fileNotFound(fileName);
@@ -23,7 +25,7 @@ public class FileReadWriter {
             ErrorMessage.getInstance().ioError(fileName);
             e.printStackTrace();
         }
-        return result.toString();
+        return result;
 
     }
 
@@ -50,10 +52,12 @@ public class FileReadWriter {
         InputStream stream = null;
         try {
             stream = new FileInputStream(fileName);
-        } catch (IOException e) {
-            ErrorMessage.getInstance().ioError(fileName);
+
+        } catch (FileNotFoundException e) {
+            ErrorMessage.getInstance().fileNotFound(fileName);
             e.printStackTrace();
         }
+
         return stream;
     }
 

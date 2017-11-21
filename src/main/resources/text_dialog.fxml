@@ -3,7 +3,7 @@
 <?import javafx.scene.control.DialogPane?>
 <?import javafx.scene.control.TextArea?>
 
-<DialogPane fx:id="dialogPane" prefHeight="375.0" prefWidth="375.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.DialogController">
+<DialogPane fx:id="dialogPane" prefHeight="375.0" prefWidth="375.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.TextDialogController">
          <content>
              <TextArea fx:id="dialogTextArea"
                        prefHeight="375.0" prefWidth="375.0"

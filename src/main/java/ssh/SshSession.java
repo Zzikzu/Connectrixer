@@ -2,6 +2,7 @@ package ssh;
 
 import com.jcraft.jsch.*;
 import io.ErrorMessage;
+import io.UserProperties;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,8 +21,8 @@ public class SshSession {
         jsch = new JSch();
         this.ip = ip;
         this.hostname = hostname;
-        user = "a_kravec.miroslav";
-        String password = "Hraskova9*";
+        user = UserProperties.getInstance().getLogin();
+        String password = UserProperties.getInstance().getPassword();
         int port = 22;
         echo("Opening session for: " + ip + " - " + hostname);
         session = getSession(user, ip, port, password);
@@ -43,7 +44,6 @@ public class SshSession {
         try {
             Channel channel = session.openChannel("exec");
             ((ChannelExec)channel).setCommand(command);
-//            channel.setInputStream(null);
 
             try {
                 InputStream in = channel.getInputStream();
@@ -59,7 +59,6 @@ public class SshSession {
                     }
                     if(channel.isClosed()){
                         if(in.available()>0) continue;
-                        //System.out.println("exit-status: "+channel.getExitStatus());
                         break;
                     }
                     try {

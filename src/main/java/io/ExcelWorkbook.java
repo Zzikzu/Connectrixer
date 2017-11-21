@@ -16,10 +16,9 @@ public class ExcelWorkbook {
 
     private static ExcelWorkbook instance;
     private XSSFWorkbook workBook;
-    private ExcelWorksheet reserved;
+    private ExcelWorksheet worksheet;
     private boolean workbookLoaded = false;
     private boolean inFrozenState;
-    private int maxReservedCount = 5;
     private String filePath;
 
     public static ExcelWorkbook getInstance() {
@@ -36,14 +35,49 @@ public class ExcelWorkbook {
         System.out.println();
         System.out.println("..loading, please wait");
 
+        int maxReservedCount = UserProperties.getInstance().getTabCount();
+
         try {
             workBook = new XSSFWorkbook(new FileInputStream(filePath));
+            String reserved = "Reserved";
+
             System.out.println();
             System.out.println("File loaded:");
             System.out.println(filePath);
 
-            reserved = new ExcelWorksheet("Reserved");
-            workbookLoaded = true;
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+            String date = dateFormat.format(new Date());
+
+            List<String> sheetNameList = new ArrayList<>();
+            sheetNameList.clear();
+
+            for (XSSFSheet sheet : workBook){
+                String sheetName = workBook.getSheetName(workBook.getSheetIndex(sheet));
+                if (sheetName.contains(reserved)){
+                    sheetNameList.add(sheet.getSheetName());
+                }
+            }
+
+            while (sheetNameList.size() >= maxReservedCount){
+                Collections.sort(sheetNameList);
+                workBook.removeSheetAt(workBook.getSheetIndex(sheetNameList.get(0)));
+                sheetNameList.remove(0);
+            }
+
+            sheetNameList.sort(Collections.reverseOrder());
+
+            XSSFSheet sheet = workBook.createSheet(reserved + "_" + date);
+
+            workBook.setSheetOrder(sheet.getSheetName(), workBook.getSheetIndex(sheetNameList.get(0)));
+            workBook.setSelectedTab(workBook.getSheetIndex(sheet.getSheetName()));
+
+            worksheet = new ExcelWorksheet(sheet);
+            if (worksheet.getWorksheet() != null){
+                workbookLoaded = true;
+            }else {
+                ErrorMessage.getInstance().worksheetIssue(worksheet.getSheetName());
+            }
+
 
         } catch (IOException e) {
             workbookLoaded = false;
@@ -53,32 +87,38 @@ public class ExcelWorkbook {
     }
 
     public void writeLineToReserved(String[] inputs){
-        if (reserved.getWorksheet() != null){
-            reserved.writeLine(inputs);
+        if (worksheet.getWorksheet() != null){
+            worksheet.writeLine(inputs);
         }else {
-            ErrorMessage.getInstance().worksheetIssue(reserved.getSheetName());
+            ErrorMessage.getInstance().worksheetIssue(worksheet.getSheetName());
         }
     }
 
 
     public void saveWorkbook() {
-        reserved.consolidateSheet();
-
-        try {
-            workBook.write(new FileOutputStream(filePath));
-            System.out.println();
-            System.out.println("File saved:");
-            System.out.println(filePath);
-            System.out.println("To continue please reload your workBook.");
-        } catch (FileNotFoundException e){
-            ErrorMessage.getInstance().fileNotFound(filePath);
-            e.printStackTrace();
-        } catch (IOException e) {
-            ErrorMessage.getInstance().ioError(filePath);
-            e.printStackTrace();
-        }finally {
-            workbookLoaded = false;
+        if  (worksheet.getWorksheet() != null){
+            worksheet.consolidateSheet();
+            try {
+                workBook.write(new FileOutputStream(filePath));
+                System.out.println();
+                System.out.println("File saved:");
+                System.out.println(filePath);
+                System.out.println("To continue please reload your workBook.");
+            } catch (FileNotFoundException e){
+                ErrorMessage.getInstance().fileNotFound(filePath);
+                e.printStackTrace();
+            } catch (IOException e) {
+                ErrorMessage.getInstance().ioError(filePath);
+                e.printStackTrace();
+            }finally {
+                workbookLoaded = false;
+            }
+        }  else {
+            ErrorMessage.getInstance().worksheetIssue(worksheet.getSheetName());
         }
+
+
+
     }
 
     public boolean isWorkbookLoaded() {
@@ -105,55 +145,18 @@ public class ExcelWorkbook {
         this.inFrozenState = inFrozenState;
     }
 
-    public int getMaxReservedCount() {
-        return maxReservedCount;
-    }
-
-    public void setMaxReservedCount(int maxReservedCount) {
-        this.maxReservedCount = maxReservedCount;
-    }
 
 
     //===============================================================================================================
 
-    private class ExcelWorksheet extends XSSFSheet{
+    private class ExcelWorksheet{
 
         private XSSFSheet sheet;
         private int rowCount;
         private XSSFRow headerRow;
-        private String sheetName;
-        private DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-        private List<String> sheetNameList;
 
-        private ExcelWorksheet(String name) {
-            String date = dateFormat.format(new Date());
-
-            int lastReservedSheetIndex;
-
-            sheetNameList = new ArrayList<>();
-            sheetNameList.clear();
-
-            for (XSSFSheet sheet : workBook){
-                String sheetName = workBook.getSheetName(workBook.getSheetIndex(sheet));
-                if (sheetName.contains(name)){
-                    sheetNameList.add(sheet.getSheetName());
-                }
-            }
-
-            sheet = workBook.createSheet(name + "_" + date);
-
-            if (!sheetNameList.isEmpty()){
-                sheetNameList.sort(Collections.reverseOrder());
-                lastReservedSheetIndex = workBook.getSheetIndex(sheetNameList.get(0));
-
-                if (sheetNameList.size() >= maxReservedCount){
-                    workBook.removeSheetAt(lastReservedSheetIndex);
-                }
-
-                workBook.setSheetOrder(sheet.getSheetName(), lastReservedSheetIndex);
-            }
-
-            sheetName = sheet.getSheetName();
+        private ExcelWorksheet(XSSFSheet sheet) {
+            this.sheet = sheet;
             rowCount = 0;
             setHeader();
         }
@@ -191,11 +194,15 @@ public class ExcelWorkbook {
             style.setFillPattern(CellStyle.BIG_SPOTS);
             headerRow.setRowStyle(style);
 
-            workBook.setActiveSheet(workBook.getSheetIndex(sheetName));
+            workBook.setActiveSheet(workBook.getSheetIndex(sheet.getSheetName()));
         }
 
         XSSFSheet getWorksheet() {
             return sheet;
+        }
+
+        String getSheetName(){
+            return sheet.getSheetName();
         }
     }
 }

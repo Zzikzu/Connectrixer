@@ -1,16 +1,16 @@
 package sample;
 
-public class DialogSettings {
+public class TextDialogSettings {
     private String fileToRead;
     private boolean isEditable;
-    private static DialogSettings instance;
+    private static TextDialogSettings instance;
 
-    private DialogSettings() {
+    private TextDialogSettings() {
     }
 
-    public static DialogSettings getInstance() {
+    public static TextDialogSettings getInstance() {
         if (instance == null) {
-            instance = new DialogSettings();
+            instance = new TextDialogSettings();
         }
         return instance;
     }

@@ -5,7 +5,6 @@ import io.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.MenuBar;
@@ -20,7 +19,6 @@ import javafx.stage.FileChooser;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.net.URL;
 import java.util.Optional;
 
 public class MainController {
@@ -57,22 +55,55 @@ public class MainController {
         fileSaveAs.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN, KeyCombination.ALT_DOWN));
         fileExit.setAccelerator(new KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN));
 
-        System.out.println("Hello!");
-        Connectrix.getInstance().readHostList();
+
+        Thread thread = new Thread(() -> {
+            buttonsInactive(true);
+
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println("Running initial check");
+
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            UserProperties.getInstance().initialize();
+            Connectrix.getInstance().readHostList();
+
+            System.out.println("Check done, please continue");
+
+            buttonsInactive(false);
+        });
+        thread.start();
     }
 
     @FXML
     public void onRunButtonClicked() {
         Thread thread = new Thread(() -> {
             buttonsInactive(true);
-            if (ExcelWorkbook.getInstance().isWorkbookLoaded()){
+            if (ExcelWorkbook.getInstance().isWorkbookLoaded() && UserProperties.getInstance().credentialsSet()){
                 Connectrix.getInstance().start();
                 buttonsInactive(false);
-            }else {
+            }
+
+            if (!ExcelWorkbook.getInstance().isWorkbookLoaded()){
                 System.out.println();
                 System.out.println("No Workbook loaded!");
                 System.out.println("Please load it");
             }
+
+            if (!UserProperties.getInstance().credentialsSet()){
+                System.out.println();
+                System.out.println("Login credentials not set.");
+                System.out.println("Please run: Edit => User settings");
+            }
+
+
             buttonsInactive(false);
 
         });
@@ -87,7 +118,10 @@ public class MainController {
         FileChooser.ExtensionFilter xlsxFiles = new FileChooser.ExtensionFilter("Excel files (*.xlsx)", "*.xlsx");
         FileChooser.ExtensionFilter allFiles = new FileChooser.ExtensionFilter("All files (*.*)", "*.*");
         fileChooser.setTitle("Open Resource File");
-        fileChooser.setInitialDirectory(UserProperty.getInstance().getWorkDir());
+        File workDir = UserProperties.getInstance().getWorkDir();
+        if (workDir != null){
+            fileChooser.setInitialDirectory(workDir);
+        }
         fileChooser.getExtensionFilters().add(xlsxFiles);
         fileChooser.getExtensionFilters().add(allFiles);
         File selectedFile = fileChooser.showOpenDialog(null);
@@ -95,7 +129,7 @@ public class MainController {
         Thread thread = new Thread(() -> {
 
             if (selectedFile != null) {
-                UserProperty.getInstance().setWorkDir(selectedFile.getParentFile());
+                UserProperties.getInstance().setWorkDir(selectedFile.getParentFile());
 
                 System.out.println();
                 System.out.println("File selected: " + selectedFile.getName());
@@ -138,7 +172,7 @@ public class MainController {
             FileChooser.ExtensionFilter allFiles = new FileChooser.ExtensionFilter("All files (*.*)", "*.*");
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Save File");
-            fileChooser.setInitialDirectory(UserProperty.getInstance().getWorkDir());
+            fileChooser.setInitialDirectory(UserProperties.getInstance().getWorkDir());
             fileChooser.getExtensionFilters().add(xlsxFiles);
             fileChooser.getExtensionFilters().add(allFiles);
             File selectedFile = fileChooser.showSaveDialog(null);
@@ -146,7 +180,7 @@ public class MainController {
             Thread thread = new Thread(() -> {
 
                 if (selectedFile != null) {
-                    UserProperty.getInstance().setWorkDir(selectedFile.getParentFile());
+                    UserProperties.getInstance().setWorkDir(selectedFile.getParentFile());
 
                     System.out.println();
                     System.out.println("File selected: " + selectedFile.getName());
@@ -186,34 +220,71 @@ public class MainController {
 
     @FXML
     public void onEditHostListClicked(){
-        showDialog("hostlist.txt", "Host List", true, true);
+        showTextDialog("hostlist.txt", "Host List", true, true);
+    }
+
+
+    @FXML
+    public void onEditUserSettings(){
+        String title = "User settings";
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.initOwner(mainWindow.getScene().getWindow());
+
+        FXMLLoader fxmlLoader = new FXMLLoader();
+        fxmlLoader.setLocation(getClass().getClassLoader().getResource("user_dialog.fxml"));
+
+        try {
+            dialog.getDialogPane().setContent(fxmlLoader.load());
+        } catch (IOException e) {
+            ErrorMessage.getInstance().customMeassage("Couldn't load the dialog window");
+            e.printStackTrace();
+            return;
+        }
+
+        dialog.setTitle(title);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            UserDialogController controller = fxmlLoader.getController();
+
+            UserProperties.getInstance().setSessionCount(controller.getSessionCount());
+            UserProperties.getInstance().setTabCount(controller.getTabCount());
+            UserProperties.getInstance().setCredentials(controller.getUserName(), controller.getPassword());
+
+            System.out.println("User setting edited");
+
+        }
+
     }
 
     @FXML
     public void onHelpReadMeClicked(){
-        showDialog("readme.txt", "Read Me", false, false);
+        showTextDialog("readme.txt", "Read Me", false, false);
     }
 
     @FXML
     public void onHelpErrorLogClicked(){
-        showDialog("error.log", "Error Log", false, false);
+        showTextDialog("error.log", "Error Log", false, false);
 
     }
 
     @FXML
     public void onHelpAboutClicked(){
-        showDialog("about.txt", "About program", false, false);
+        showTextDialog("about.txt", "About program", false, false);
     }
 
-    private void showDialog(String fileName, String title, Boolean isEditable, Boolean hasCancelButton) {
+    private void showTextDialog(String fileName, String title, Boolean isEditable, Boolean hasCancelButton) {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.initOwner(mainWindow.getScene().getWindow());
 
-        DialogSettings.getInstance().setEditable(isEditable);
-        DialogSettings.getInstance().setFileToRead(fileName);
+        TextDialogSettings.getInstance().setEditable(isEditable);
+        TextDialogSettings.getInstance().setFileToRead(fileName);
 
         FXMLLoader fxmlLoader = new FXMLLoader();
-        fxmlLoader.setLocation(getClass().getClassLoader().getResource("dialog.fxml"));
+        fxmlLoader.setLocation(getClass().getClassLoader().getResource("text_dialog.fxml"));
 
 
         try {
@@ -224,7 +295,7 @@ public class MainController {
             return;
         }
 
-        DialogController controller = fxmlLoader.getController();
+        TextDialogController controller = fxmlLoader.getController();
         controller.setFileName(fileName);
         controller.setEditable(isEditable);
 

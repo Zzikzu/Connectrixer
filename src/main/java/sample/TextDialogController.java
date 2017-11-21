@@ -5,9 +5,9 @@ import javafx.fxml.FXML;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.TextArea;
 
-public class DialogController {
-    private String fileName = DialogSettings.getInstance().getFileToRead();
-    private boolean isEditable = DialogSettings.getInstance().isEditable();
+public class TextDialogController {
+    private String fileName = TextDialogSettings.getInstance().getFileToRead();
+    private boolean isEditable = TextDialogSettings.getInstance().isEditable();
 
     @FXML
     private TextArea dialogTextArea;

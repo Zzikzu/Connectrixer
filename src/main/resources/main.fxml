@@ -40,6 +40,7 @@
             </Menu>
             <Menu text="Edit">
                 <MenuItem onAction="#onEditHostListClicked" text="Host list" />
+                <MenuItem onAction="#onEditUserSettings" text="User settings"/>
             </Menu>
             <Menu text="Help">
                 <MenuItem onAction="#onHelpReadMeClicked" text="Read me" />

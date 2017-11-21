@@ -90,20 +90,8 @@ public class ErrorMessage {
         System.err.println(cmd);
     }
 
-    public void nbuJobListsMismatchError(String fileName){
-        String date = "Error date: " + new Date();
-        String message = "Error: NBUJoblist mismatch has occurred!";
-        String file = "File: " + fileName;
 
-        System.out.println();
-        System.out.println(message);
-        System.out.println(file);
-        System.err.println();
-        System.err.println(date);
-        System.err.println(file);
-    }
-
-    public void worksheetIssue(String sheetName){
+    void worksheetIssue(String sheetName){
         String date = "Error date: " + new Date();
         String message = "ERROR: Worksheet issue has occurred!";
         String workbook = "Please check your workbook";
@@ -144,4 +132,16 @@ public class ErrorMessage {
         System.err.println(date);
         System.err.println(msg);
     }
+
+    public void customWarninng(String message){
+        String date = "Warning date: " + new Date();
+        String msg = "Warning: " + message;
+
+        System.out.println();
+        System.out.println(msg);
+        System.err.println();
+        System.err.println(date);
+        System.err.println(msg);
+    }
+
 }

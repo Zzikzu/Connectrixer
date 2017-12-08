@@ -47,10 +47,11 @@ public class UserProperties {
             InputStream stream = FileReadWriter.getInputStream(fileName.toString());
 
             if (stream == null){
-                ErrorMessage.getInstance().customWarninng("Warning: File " + fileName + " probably don't exist");
                 System.out.println("Creating new property file: " + fileName);
                 saveProperties();
-                stream = FileReadWriter.getInputStream(fileName.toString());
+
+                setSessionCount(1);
+                setTabCount(1);
             }
 
             if (stream != null) {

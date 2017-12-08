@@ -41,10 +41,6 @@ public class ExcelWorkbook {
             workBook = new XSSFWorkbook(new FileInputStream(filePath));
             String reserved = "Reserved";
 
-            System.out.println();
-            System.out.println("File loaded:");
-            System.out.println(filePath);
-
             DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
             String date = dateFormat.format(new Date());
 
@@ -58,7 +54,7 @@ public class ExcelWorkbook {
                 }
             }
 
-            while (sheetNameList.size() >= maxReservedCount){
+            while (sheetNameList.size() > maxReservedCount){
                 Collections.sort(sheetNameList);
                 workBook.removeSheetAt(workBook.getSheetIndex(sheetNameList.get(0)));
                 sheetNameList.remove(0);
@@ -68,7 +64,23 @@ public class ExcelWorkbook {
 
             XSSFSheet sheet = workBook.createSheet(reserved + "_" + date);
 
-            workBook.setSheetOrder(sheet.getSheetName(), workBook.getSheetIndex(sheetNameList.get(0)));
+            System.out.println("Checkpoint");
+
+
+            String tabName = null;
+            if  (!sheetNameList.isEmpty()){
+                tabName = sheetNameList.get(0);
+                System.out.println("Sheet list is not empty");
+            }else {
+                System.out.println("Sheet list is empty");
+            }
+
+            System.out.println("Checkpoint 2");
+            if (tabName != null){
+                System.out.println("New tab: " + tabName);
+                workBook.setSheetOrder(sheet.getSheetName(), workBook.getSheetIndex(tabName));
+            }
+
             workBook.setSelectedTab(workBook.getSheetIndex(sheet.getSheetName()));
 
             worksheet = new ExcelWorksheet(sheet);
@@ -77,6 +89,10 @@ public class ExcelWorkbook {
             }else {
                 ErrorMessage.getInstance().worksheetIssue(worksheet.getSheetName());
             }
+
+            System.out.println();
+            System.out.println("File loaded:");
+            System.out.println(filePath);
 
 
         } catch (IOException e) {

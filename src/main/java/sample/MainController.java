@@ -332,7 +332,7 @@ public class MainController {
         System.setOut(console.getPrintStream());
 
         PrintStream errorStream = new PrintStream(new ErrorOutputStream(ErrorLog.getInstance()));
-//        System.setErr(errorStream);
+        System.setErr(errorStream);
     }
 
 }

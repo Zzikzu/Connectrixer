@@ -51,9 +51,10 @@ public class FileReadWriter {
     static InputStream getInputStream(String fileName) {
         InputStream stream = null;
         try {
-            stream = new FileInputStream(fileName);
+             stream = new FileInputStream(fileName);
 
         } catch (FileNotFoundException e) {
+            stream = null;
             ErrorMessage.getInstance().fileNotFound(fileName);
             e.printStackTrace();
         }

@@ -80,7 +80,7 @@ public class UserProperties {
 
                 stream.close();
             } else {
-                ErrorMessage.getInstance().customMeassage("Error: Issue with " + fileName + "occurred!");
+                ErrorMessage.getInstance().customMeassage("Error: Issue with " + fileName + " occurred!");
                 saveProperties();
             }
 

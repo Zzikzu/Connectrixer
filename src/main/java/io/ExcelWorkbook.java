@@ -64,18 +64,11 @@ public class ExcelWorkbook {
 
             XSSFSheet sheet = workBook.createSheet(reserved + "_" + date);
 
-            System.out.println("Checkpoint");
-
-
             String tabName = null;
             if  (!sheetNameList.isEmpty()){
                 tabName = sheetNameList.get(0);
-                System.out.println("Sheet list is not empty");
-            }else {
-                System.out.println("Sheet list is empty");
             }
 
-            System.out.println("Checkpoint 2");
             if (tabName != null){
                 System.out.println("New tab: " + tabName);
                 workBook.setSheetOrder(sheet.getSheetName(), workBook.getSheetIndex(tabName));

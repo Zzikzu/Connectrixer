@@ -1,15 +1,15 @@
 package core;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import core.BrocadeSwitch.SwitchPort;
 import io.ErrorMessage;
 import io.ExcelWorkbook;
 import io.FileReadWriter;
 import io.UserProperties;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static core.Patterns.*;
 
@@ -173,7 +173,6 @@ public class Connectrix {
     }
 
     private class MainProcess{
-        private int id;
         private String switchIp;
         private String swHostname;
 
@@ -188,7 +187,6 @@ public class Connectrix {
 
 
         MainProcess(int id, String switchIp, String swHostname) {
-            this.id = id;
             this.switchIp = switchIp;
             this.swHostname = swHostname;
 
@@ -254,6 +252,11 @@ public class Connectrix {
                     }
 
 
+                    if (!online){
+                        comment = "Offline";
+                        writeLineToWorkbook(switchname, index, slot, port, wwn, portname, alias, comment);
+                    }
+
                     if (online) {
                         if (switchPort.getPortFlag().equals(E_PORT)) {
                             line = line.replace("E-Port", E_PORT);
@@ -276,6 +279,7 @@ public class Connectrix {
                                         .replace("master", "MASTER")
                                         .replace(" ", "");
                             }
+                            writeLineToWorkbook(switchname, index, slot, port, wwn, portname, alias, comment);
                         }
 
                         if (switchPort.getPortFlag().equals(F_PORT)) {
@@ -293,9 +297,6 @@ public class Connectrix {
                                 writeLineToWorkbook(switchname, index, slot, port, wwn, portname, alias, comment);
                             }
                         }
-                    }
-                    if (!npiv){
-                        writeLineToWorkbook(switchname, index, slot, port, wwn, portname, alias, comment);
                     }
                 }
             }

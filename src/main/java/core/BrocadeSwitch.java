@@ -93,7 +93,7 @@ class BrocadeSwitch {
                     .grep(GrepOption.invertMatch, "Router")
                     .grep(GrepOption.invertMatch, "No_Module")
                     .toStringResult()
-                    .split(System.getProperty("line.separator"));
+                    .split("\n");
 
             ArrayList<Integer> indexes = new ArrayList<>();
             Pattern numPattern = Pattern.compile(ZERO_TO_FOUR_FIGURE_NUMBER);
@@ -137,7 +137,7 @@ class BrocadeSwitch {
 
         portMap = new HashMap<>();
         String portshow = session.execute(Commands.PORTSHOW + " " + startIndex + "-" + endIndex + " -f");
-        String[] portshowArray = portshow.split(System.getProperty("line.separator"));
+        String[] portshowArray = portshow.split("\n");
 
 
         Map<Pattern, String> patternMap = new HashMap<>();
@@ -177,7 +177,7 @@ class BrocadeSwitch {
 
                     if (wwnsSearching) {
                         if (pattern.equals(wwnPattern)) {
-                            wwns.append(matcher.group()).append(System.getProperty("line.separator"));
+                            wwns.append(matcher.group()).append("\n");
                         }
                         i++;
 
@@ -216,7 +216,7 @@ class BrocadeSwitch {
                     portState = patternMap.get(portStatePattern).replaceAll("[^A-Za-z]", "");
                     portWwn = patternMap.get(portWwnPattern).replace(" ", "");
 
-                    portConnectedWNs = new ArrayList<>(Arrays.asList(patternMap.get(portWwnConnectedPattern).split(System.getProperty("line.separator"))));
+                    portConnectedWNs = new ArrayList<>(Arrays.asList(patternMap.get(portWwnConnectedPattern).split("\n")));
                     patternMap.clear();
                     j = 0;
 
@@ -301,7 +301,7 @@ class BrocadeSwitch {
         String alishowAll = session.execute(Commands.ALISHOW);
 //        FileReadWriter.getInstance().write(alishowAll, "alishow.txt");
 
-        String[] alishow = alishowAll.split(System.getProperty("line.separator"));
+        String[] alishow = alishowAll.split("\n");
         this.alishow = new HashMap<>();
 
         String alias = null;

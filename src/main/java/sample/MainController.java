@@ -47,7 +47,6 @@ public class MainController {
     @FXML
     private GridPane mainWindow;
 
-
     public void initialize(){
         redirectOutputStream();
         fileOpen.setAccelerator(new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN));
@@ -332,7 +331,7 @@ public class MainController {
         System.setOut(console.getPrintStream());
 
         PrintStream errorStream = new PrintStream(new ErrorOutputStream(ErrorLog.getInstance()));
-        System.setErr(errorStream);
+//        System.setErr(errorStream);
     }
 
 }

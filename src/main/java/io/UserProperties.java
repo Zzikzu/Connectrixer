@@ -127,7 +127,7 @@ public class UserProperties {
 
 //                setLogin(login);
             }else {
-                ErrorMessage.getInstance().customMeassage("Error: Issue with " + fileName + "occurred!");
+                ErrorMessage.getInstance().customMeassage("Error: Issue with " + fileName + " occurred!");
             }
 
         } catch (IOException e) {

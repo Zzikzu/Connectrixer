@@ -54,7 +54,7 @@ public class ExcelWorkbook {
                 }
             }
 
-            while (sheetNameList.size() > maxReservedCount){
+            while (sheetNameList.size() >= maxReservedCount){
                 Collections.sort(sheetNameList);
                 workBook.removeSheetAt(workBook.getSheetIndex(sheetNameList.get(0)));
                 sheetNameList.remove(0);

@@ -1,7 +1,7 @@
 package ssh;
 
 import com.jcraft.jsch.*;
-import io.ErrorMessage;
+import io.Messages;
 import io.UserProperties;
 
 import java.io.IOException;
@@ -71,17 +71,17 @@ public class SshSession {
                     channel.disconnect();
 
                 }catch (IOException e){
-                    ErrorMessage.getInstance().sshIoError(ip);
+                    Messages.getInstance().sshIoError(ip);
                     e.printStackTrace();
                 }
 
             }catch (JSchException e){
-                ErrorMessage.getInstance().sshChanelError(ip, command);
+                Messages.getInstance().sshChanelError(ip, command);
                 e.printStackTrace();
             }
         } else  {
-            ErrorMessage.getInstance().sshChanelError(ip, command);
-            ErrorMessage.getInstance().customMeassage("Session is not connected");
+            Messages.getInstance().sshChanelError(ip, command);
+            Messages.getInstance().customErrorMeassage("Session is not connected");
         }
 
         return sb.toString();
@@ -99,14 +99,14 @@ public class SshSession {
             try {
                 session.connect(30000);
             }catch (JSchException e){
-                ErrorMessage.getInstance().customWarninng("Connection to " + host + " failed");
-                ErrorMessage.getInstance().customWarninng("Trying second attempt");
+                Messages.getInstance().customWarninng("Connection to " + host + " failed");
+                Messages.getInstance().customWarninng("Trying second attempt");
                 session.connect(30000);
             }
 
 
         }catch (JSchException e){
-            ErrorMessage.getInstance().sshSessionError(user, host);
+            Messages.getInstance().sshSessionError(user, host);
             e.printStackTrace();
         }
         return session;

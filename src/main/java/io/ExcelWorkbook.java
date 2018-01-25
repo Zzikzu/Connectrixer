@@ -80,7 +80,7 @@ public class ExcelWorkbook {
             if (worksheet.getWorksheet() != null){
                 workbookLoaded = true;
             }else {
-                ErrorMessage.getInstance().worksheetIssue(worksheet.getSheetName());
+                Messages.getInstance().worksheetIssue(worksheet.getSheetName());
             }
 
             System.out.println();
@@ -90,7 +90,7 @@ public class ExcelWorkbook {
 
         } catch (IOException e) {
             workbookLoaded = false;
-            ErrorMessage.getInstance().ioError(filePath);
+            Messages.getInstance().ioError(filePath);
             e.printStackTrace();
         }
     }
@@ -99,7 +99,7 @@ public class ExcelWorkbook {
         if (worksheet.getWorksheet() != null){
             worksheet.writeLine(inputs);
         }else {
-            ErrorMessage.getInstance().worksheetIssue(worksheet.getSheetName());
+            Messages.getInstance().worksheetIssue(worksheet.getSheetName());
         }
     }
 
@@ -114,16 +114,16 @@ public class ExcelWorkbook {
                 System.out.println(filePath);
                 System.out.println("To continue please reload your workBook.");
             } catch (FileNotFoundException e){
-                ErrorMessage.getInstance().fileNotFound(filePath);
+                Messages.getInstance().fileNotFound(filePath);
                 e.printStackTrace();
             } catch (IOException e) {
-                ErrorMessage.getInstance().ioError(filePath);
+                Messages.getInstance().ioError(filePath);
                 e.printStackTrace();
             }finally {
                 workbookLoaded = false;
             }
         }  else {
-            ErrorMessage.getInstance().worksheetIssue(worksheet.getSheetName());
+            Messages.getInstance().worksheetIssue(worksheet.getSheetName());
         }
 
 

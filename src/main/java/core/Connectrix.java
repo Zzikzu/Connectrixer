@@ -1,7 +1,7 @@
 package core;
 
 import core.BrocadeSwitch.SwitchPort;
-import io.ErrorMessage;
+import io.Messages;
 import io.ExcelWorkbook;
 import io.FileReadWriter;
 import io.UserProperties;
@@ -23,6 +23,7 @@ public class Connectrix {
     private boolean connectrixIsRunning;
     private static int swDoneCount;
     private int runningSessions;
+    private boolean hostListLoaded;
 
 
     private Connectrix() {
@@ -37,60 +38,67 @@ public class Connectrix {
     }
 
     public void start() {
-        long startTime = System.currentTimeMillis();
-        connectrixIsRunning = true;
-        int processId = 0;
-        runningSessions = 0;
-        int waitTime = 30;
-
-        echo("Process started..", true, false);
-
-        int sessionMaxCount = UserProperties.getInstance().getSessionCount();
-        swDoneCount = 0;
-
-        for (Object o : hostListMap.entrySet()) {
-            Map.Entry pair = (Map.Entry) o;
+        if (hostListLoaded) {
 
 
-            while (runningSessions >= sessionMaxCount){
-                System.out.println("Max session count reached, waiting " + waitTime + " sec");
+            long startTime = System.currentTimeMillis();
+            connectrixIsRunning = true;
+            int processId = 0;
+            runningSessions = 0;
+            int waitTime = 30;
+
+            echo("Process started..", true, false);
+
+            int sessionMaxCount = UserProperties.getInstance().getSessionCount();
+            swDoneCount = 0;
+
+            for (Object o : hostListMap.entrySet()) {
+                Map.Entry pair = (Map.Entry) o;
+
+
+                while (runningSessions >= sessionMaxCount) {
+                    System.out.println("Max session count reached, waiting " + waitTime + " sec");
+                    try {
+                        Thread.sleep(waitTime * 1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println("Trying to start new session");
+                }
+
+                processId++;
+                runningSessions++;
+
+                final int pid = processId;
+                String switchIp = pair.getKey().toString();
+                String swHostname = pair.getValue().toString();
+
+                Thread thread = new Thread(() -> {
+
+                    MainProcess mainProcess = new MainProcess(pid, switchIp, swHostname);
+                    mainProcess.run();
+                });
+                thread.start();
+
                 try {
-                    Thread.sleep(waitTime * 1000);
-                }catch (InterruptedException e){
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                System.out.println("Trying to start new session");
             }
 
-            processId++;
-            runningSessions++;
-
-            final int pid = processId;
-            String switchIp = pair.getKey().toString();
-            String swHostname = pair.getValue().toString();
-
-            Thread thread = new Thread(() -> {
-
-                MainProcess mainProcess = new MainProcess(pid, switchIp, swHostname);
-                mainProcess.run();
-            });
-            thread.start();
-
-            try {
-                Thread.sleep(500);
-            }catch (InterruptedException e){
-                e.printStackTrace();
-            }
+            do {
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                tryToEnd(startTime);
+            } while (connectrixIsRunning);
+        }else {
+            Messages.getInstance().customWarninng("Host list not loaded, probably empty file");
+            Messages.getInstance().customInfoMessage("Please run: Edit => Host list");
         }
-
-        do {
-            try{
-                Thread.sleep(3000);
-            }catch (InterruptedException e){
-                e.printStackTrace();
-            }
-            tryToEnd(startTime);
-        } while (connectrixIsRunning);
     }
 
     private void tryToEnd(long startTime){
@@ -111,13 +119,13 @@ public class Connectrix {
     public void readHostList(){
         hostList = FileReadWriter.read(file);
         if (hostList == null){
-            FileReadWriter.write("", file, false);
-            ErrorMessage.getInstance().customWarninng("File " + file + " probably don't exits");
-            System.out.println("Creating empty host list");
+            Messages.getInstance().customWarninng("First attempt to read " + file + " failed");
+            Messages.getInstance().customWarninng("Trying second attempt to read " + file);
             hostList = FileReadWriter.read(file);
         }
 
         if (hostList != null){
+            Messages.getInstance().customInfoMessage("Reading " + file);
             processHostList();
         }
     }
@@ -155,10 +163,13 @@ public class Connectrix {
 
          if (!hostListMap.isEmpty()){
              echo("Host list loaded", true, false);
+             hostListLoaded = true;
              swCount = hostListMap.size();
          }else {
-             ErrorMessage.getInstance().customWarninng("Host list not loaded, probably empty file: " + file + " or no valid entries found");
-             System.out.println("Please run: Edit => Host list");
+             Messages.getInstance().customWarninng("Host list not loaded, probably empty file");
+             Messages.getInstance().customWarninng("Filename: " + file);
+             Messages.getInstance().customInfoMessage("Please run: Edit => Host list");
+             hostListLoaded = false;
          }
     }
 
@@ -306,8 +317,8 @@ public class Connectrix {
                 sw.disconnect();
 
             } else {
-                ErrorMessage.getInstance().customMeassage("Unable to run the process for " + swHostname);
-                ErrorMessage.getInstance().customMeassage("Connection error for: " + switchIp);
+                Messages.getInstance().customErrorMeassage("Unable to run the process for " + swHostname);
+                Messages.getInstance().customErrorMeassage("Connection error for: " + switchIp);
             }
 
             swDoneCount++;

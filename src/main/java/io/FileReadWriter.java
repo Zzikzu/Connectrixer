@@ -18,11 +18,13 @@ public class FileReadWriter {
             result = sb.toString();
 
         }catch (FileNotFoundException e){
-            ErrorMessage.getInstance().fileNotFound(fileName);
+            Messages.getInstance().fileNotFound(fileName);
             e.printStackTrace();
 
+            write("",fileName, false);
+
         } catch (IOException e) {
-            ErrorMessage.getInstance().ioError(fileName);
+            Messages.getInstance().ioError(fileName);
             e.printStackTrace();
         }
         return result;
@@ -32,30 +34,53 @@ public class FileReadWriter {
 
 
     public static void write(String input, String fileName, boolean append) {
+        if (createEmptyFileIfDontExists(fileName)){
+            try (PrintWriter printText = new PrintWriter(new FileWriter(DIR + fileName, append))) {    //append to file
 
-        try (PrintWriter printText = new PrintWriter(new FileWriter(DIR + fileName, append))) {    //append to file
+                printText.print(input);    // printLine.printf("%s" + "%n", textLine);
+                printText.close();
 
-            printText.print(input);    // printLine.printf("%s" + "%n", textLine);
-            printText.close();
+            }catch (FileNotFoundException e){
+                Messages.getInstance().fileNotFound(fileName);
+                e.printStackTrace();
 
-        }catch (FileNotFoundException e){
-            ErrorMessage.getInstance().fileNotFound(fileName);
-            e.printStackTrace();
+            } catch (IOException e) {
+                Messages.getInstance().ioError(fileName);
+                e.printStackTrace();
+            }
+        }else {
+            Messages.getInstance().customErrorMeassage("Unable to write to or create file: " + fileName);
+        }
 
-        } catch (IOException e) {
-            ErrorMessage.getInstance().ioError(fileName);
-            e.printStackTrace();
+
+    }
+
+    public static boolean createEmptyFileIfDontExists(String fileName){
+
+        File file = new File(DIR + fileName);
+        if (!file.exists()){
+            Messages.getInstance().customWarninng("File " + file + " do not exists");
+            Messages.getInstance().customInfoMessage("Creating new " + fileName);
+            try {
+                return file.createNewFile();
+            } catch (IOException e) {
+                Messages.getInstance().ioError(file.getName());
+                e.printStackTrace();
+                return false;
+            }
+        }else {
+            return true;
         }
     }
 
     static InputStream getInputStream(String fileName) {
-        InputStream stream = null;
+        InputStream stream;
         try {
              stream = new FileInputStream(fileName);
 
         } catch (FileNotFoundException e) {
             stream = null;
-            ErrorMessage.getInstance().fileNotFound(fileName);
+            Messages.getInstance().fileNotFound(fileName);
             e.printStackTrace();
         }
 
@@ -67,7 +92,7 @@ public class FileReadWriter {
         try {
             stream = new FileOutputStream(fileName);
         }catch (IOException e){
-            ErrorMessage.getInstance().ioError(fileName);
+            Messages.getInstance().ioError(fileName);
             e.printStackTrace();
         }
         return stream;

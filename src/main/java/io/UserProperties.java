@@ -80,17 +80,17 @@ public class UserProperties {
 
                 stream.close();
             } else {
-                ErrorMessage.getInstance().customMeassage("Error: Issue with " + fileName + " occurred!");
+                Messages.getInstance().customErrorMeassage("Error: Issue with " + fileName + " occurred!");
                 saveProperties();
             }
 
         } catch (FileNotFoundException ex){
-            ErrorMessage.getInstance().fileNotFound(fileName.toString());
+            Messages.getInstance().fileNotFound(fileName.toString());
             ex.printStackTrace();
 
         } catch (IOException e) {
 
-            ErrorMessage.getInstance().ioError(fileName.toString());
+            Messages.getInstance().ioError(fileName.toString());
             e.printStackTrace();
 
         }
@@ -127,11 +127,11 @@ public class UserProperties {
 
 //                setLogin(login);
             }else {
-                ErrorMessage.getInstance().customMeassage("Error: Issue with " + fileName + " occurred!");
+                Messages.getInstance().customErrorMeassage("Error: Issue with " + fileName + " occurred!");
             }
 
         } catch (IOException e) {
-            ErrorMessage.getInstance().ioError(fileName.toString());
+            Messages.getInstance().ioError(fileName.toString());
             e.printStackTrace();
         }
     }

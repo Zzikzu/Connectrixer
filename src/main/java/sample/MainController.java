@@ -236,7 +236,7 @@ public class MainController {
         try {
             dialog.getDialogPane().setContent(fxmlLoader.load());
         } catch (IOException e) {
-            ErrorMessage.getInstance().customMeassage("Couldn't load the dialog window");
+            Messages.getInstance().customErrorMeassage("Couldn't load the dialog window");
             e.printStackTrace();
             return;
         }
@@ -280,6 +280,7 @@ public class MainController {
         dialog.initOwner(mainWindow.getScene().getWindow());
 
         TextDialogSettings.getInstance().setEditable(isEditable);
+        FileReadWriter.createEmptyFileIfDontExists(fileName);
         TextDialogSettings.getInstance().setFileToRead(fileName);
 
         FXMLLoader fxmlLoader = new FXMLLoader();
@@ -289,7 +290,7 @@ public class MainController {
         try {
             dialog.getDialogPane().setContent(fxmlLoader.load());
         } catch (IOException e) {
-            ErrorMessage.getInstance().customMeassage("Couldn't load the dialog window");
+            Messages.getInstance().customErrorMeassage("Couldn't load the dialog window");
             e.printStackTrace();
             return;
         }

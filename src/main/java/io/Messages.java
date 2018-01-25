@@ -2,16 +2,16 @@ package io;
 
 import java.util.Date;
 
-public class ErrorMessage {
+public class Messages {
 
-    private static ErrorMessage instance;
+    private static Messages instance;
 
-    private ErrorMessage(){
+    private Messages(){
     }
 
-    public static ErrorMessage getInstance() {
+    public static Messages getInstance() {
         if(instance == null){
-            instance = new ErrorMessage();
+            instance = new Messages();
         }
         return instance;
     }
@@ -122,7 +122,7 @@ public class ErrorMessage {
         System.err.println(message);
     }
 
-    public void customMeassage(String message){
+    public void customErrorMeassage(String message){
         String date = "Error date: " + new Date();
         String msg = "ERROR: " + message;
 
@@ -142,6 +142,12 @@ public class ErrorMessage {
         System.err.println();
         System.err.println(date);
         System.err.println(msg);
+    }
+
+    public void customInfoMessage(String message){
+        String msg = "Info: " + message;
+        System.out.println();
+        System.out.println(msg);
     }
 
 

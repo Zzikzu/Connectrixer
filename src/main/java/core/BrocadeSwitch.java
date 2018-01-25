@@ -29,9 +29,9 @@ class BrocadeSwitch {
         this.hostname = hostname;
     }
 
-    void connect() {
+    boolean connect() {
         session = new SshSession(ipAddres, hostname);
-//        session = new SshSessionFake(ipAddres);
+        return session.isConnected();
     }
 
     void disconnect() {

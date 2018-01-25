@@ -60,11 +60,11 @@ public class ErrorMessage {
         String date = "Error date: " + new Date();
         String message = "ERROR: Session error occurred during ssh connection!";
         String usr = "User: " + user;
-        String hostname = "Hostname: " + host;
+        String hostname = "Host: " + host;
 
         System.out.println();
         System.out.println(message);
-        System.out.println(user);
+        System.out.println(usr);
         System.out.println(hostname);
         System.err.println();
         System.err.println(date);
@@ -143,5 +143,7 @@ public class ErrorMessage {
         System.err.println(date);
         System.err.println(msg);
     }
+
+
 
 }

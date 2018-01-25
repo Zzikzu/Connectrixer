@@ -13,8 +13,7 @@ public class SshSession {
     private String hostname;
     private String user;
     private JSch jsch;
-//    private String password;
-//    private int port;
+    private boolean connected = false;
 
 
     public SshSession(String ip, String hostname) {
@@ -28,9 +27,9 @@ public class SshSession {
         session = getSession(user, ip, port, password);
         if (session.isConnected()){
             echo("Session connected for: " + user +"@" + ip);
+            connected = true;
         }
     }
-
 
     public void close(){
         session.disconnect();
@@ -41,42 +40,48 @@ public class SshSession {
 
     public String execute(String command){
         StringBuilder sb = new StringBuilder();
-        try {
-            Channel channel = session.openChannel("exec");
-            ((ChannelExec)channel).setCommand(command);
 
+        if (session.isConnected()){
             try {
-                InputStream in = channel.getInputStream();
-                channel.connect();
+                Channel channel = session.openChannel("exec");
+                ((ChannelExec)channel).setCommand(command);
 
-                byte[] tmp=new byte[1024];
-                while(true){
-                    while(in.available()>0){
-                        int i=in.read(tmp, 0, 1024);
-                        if(i<0)break;
+                try {
+                    InputStream in = channel.getInputStream();
+                    channel.connect();
 
-                        sb.append(new String(tmp, 0, i));
+                    byte[] tmp=new byte[1024];
+                    while(true){
+                        while(in.available()>0){
+                            int i=in.read(tmp, 0, 1024);
+                            if(i<0)break;
+
+                            sb.append(new String(tmp, 0, i));
+                        }
+                        if(channel.isClosed()){
+                            if(in.available()>0) continue;
+                            break;
+                        }
+                        try {
+                            Thread.sleep(1000);
+                        } catch (Exception ee) {
+                            //no action
+                        }
                     }
-                    if(channel.isClosed()){
-                        if(in.available()>0) continue;
-                        break;
-                    }
-                    try {
-                        Thread.sleep(1000);
-                    } catch (Exception ee) {
-                        //no action
-                    }
+                    channel.disconnect();
+
+                }catch (IOException e){
+                    ErrorMessage.getInstance().sshIoError(ip);
+                    e.printStackTrace();
                 }
-                channel.disconnect();
 
-            }catch (IOException e){
-                ErrorMessage.getInstance().sshIoError(ip);
+            }catch (JSchException e){
+                ErrorMessage.getInstance().sshChanelError(ip, command);
                 e.printStackTrace();
             }
-
-        }catch (JSchException e){
+        } else  {
             ErrorMessage.getInstance().sshChanelError(ip, command);
-            e.printStackTrace();
+            ErrorMessage.getInstance().customMeassage("Session is not connected");
         }
 
         return sb.toString();
@@ -86,11 +91,18 @@ public class SshSession {
     private Session getSession(String user, String host, int port, String password){
         Session session = null;
         try {
+
             session = jsch.getSession(user, host, port);
             session.setPassword(password);
-
             session.setConfig("StrictHostKeyChecking", "no");
-            session.connect(30000);
+
+            try {
+                session.connect(30000);
+            }catch (JSchException e){
+                ErrorMessage.getInstance().customWarninng("Connection to " + host + " failed");
+                ErrorMessage.getInstance().customWarninng("Trying second attempt");
+                session.connect(30000);
+            }
 
 
         }catch (JSchException e){
@@ -104,5 +116,9 @@ public class SshSession {
         System.out.println("****************************************************************");
         System.out.println(message);
         System.out.println("****************************************************************");
+    }
+
+    public boolean isConnected() {
+        return connected;
     }
 }

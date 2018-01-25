@@ -14,7 +14,6 @@ class BrocadeSwitch {
     private String ipAddres;
     private String hostname;
     private SshSession session;
-//    private SshSessionFake session;
     private String switchname;
     private String[] portLines;
     private String startIndex;
@@ -108,10 +107,6 @@ class BrocadeSwitch {
             startIndex = indexes.get(0).toString();
             endIndex = indexes.get(indexes.size() - 1).toString();
         }
-
-
-
-//        FileReadWriter.getInstance().write(switchshow, "switchshow.txt");
     }
 
     private void setSwitchPorts(String startIndex, String endIndex) {
@@ -284,8 +279,6 @@ class BrocadeSwitch {
                     portSlot = null;
                     portPort = null;
                     portConnectedWNs.clear();
-
-//                            FileReadWriter.getInstance().write(portshow, "portshow.txt");
                 }
             }
         }
@@ -299,7 +292,6 @@ class BrocadeSwitch {
 
     private void setAlishow(){
         String alishowAll = session.execute(Commands.ALISHOW);
-//        FileReadWriter.getInstance().write(alishowAll, "alishow.txt");
 
         String[] alishow = alishowAll.split("\n");
         this.alishow = new HashMap<>();
@@ -393,20 +385,12 @@ class BrocadeSwitch {
             return name;
         }
 
-        String getHealth() {
-            return health;
-        }
-
         String getPortFlag() {
             return portFlag;
         }
 
         String getState() {
             return state;
-        }
-
-        String getWwn() {
-            return wwn;
         }
 
         String[] getWwnsConnected() {
@@ -416,7 +400,6 @@ class BrocadeSwitch {
 
     private static class Commands {
         static final String SWITCHSHOW = "switchshow";
-        static final String SWITCHNAME = "switchname";
         static final String ALISHOW = "alishow *";
         static final String PORTSHOW = "portshow -i";
     }

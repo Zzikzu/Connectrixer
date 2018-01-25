@@ -50,8 +50,11 @@ public class UserProperties {
                 System.out.println("Creating new property file: " + fileName);
                 saveProperties();
 
-                setSessionCount(1);
-                setTabCount(1);
+                int defaultSessionCount = 6;
+                int getDefaultTabCount = 3;
+
+                setSessionCount(defaultSessionCount);
+                setTabCount(getDefaultTabCount);
             }
 
             if (stream != null) {

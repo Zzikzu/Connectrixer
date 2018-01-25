@@ -28,8 +28,10 @@ public class UserDialogController {
         tabCountFactory = (SpinnerValueFactory.IntegerSpinnerValueFactory) tabCount.getValueFactory();
         sessionCountFactory.setMax(15);
         sessionCountFactory.setMin(1);
+        sessionCountFactory.setValue(6);
         tabCountFactory.setMax(30);
         tabCountFactory.setMin(1);
+        tabCountFactory.setValue(3);
 
         String login = UserProperties.getInstance().getLogin();
         if (login != null){

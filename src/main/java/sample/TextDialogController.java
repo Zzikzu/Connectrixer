@@ -36,7 +36,7 @@ public class TextDialogController {
                 }
             }
 
-            double textWidth = longestLine * 5;
+            double textWidth = longestLine;
             if (textWidth > prefWidth){
                 prefWidth = textWidth;
             }

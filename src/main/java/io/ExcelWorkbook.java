@@ -47,32 +47,25 @@ public class ExcelWorkbook {
             List<String> sheetNameList = new ArrayList<>();
             sheetNameList.clear();
 
-            for (XSSFSheet sheet : workBook){
-                String sheetName = workBook.getSheetName(workBook.getSheetIndex(sheet));
+            XSSFSheet sheet = workBook.createSheet(reserved + "_" + date);
+            Messages.getInstance().customInfoMessage("New tab: " + sheet.getSheetName());
+
+            for (XSSFSheet sh : workBook){
+                String sheetName = workBook.getSheetName(workBook.getSheetIndex(sh));
                 if (sheetName.contains(reserved)){
-                    sheetNameList.add(sheet.getSheetName());
+                    sheetNameList.add(sh.getSheetName());
                 }
             }
 
-            while (sheetNameList.size() >= maxReservedCount){
-                Collections.sort(sheetNameList);
-                workBook.removeSheetAt(workBook.getSheetIndex(sheetNameList.get(0)));
-                sheetNameList.remove(0);
-            }
+            workBook.setSheetOrder(sheet.getSheetName(), workBook.getSheetIndex(sheetNameList.get(0)));
 
             sheetNameList.sort(Collections.reverseOrder());
-
-            XSSFSheet sheet = workBook.createSheet(reserved + "_" + date);
-
-            String tabName = null;
-            if  (!sheetNameList.isEmpty()){
-                tabName = sheetNameList.get(0);
+            while (sheetNameList.size() > maxReservedCount){
+                int lastIndex = sheetNameList.size()-1;
+                workBook.removeSheetAt(workBook.getSheetIndex(sheetNameList.get(lastIndex)));
+                sheetNameList.remove(lastIndex);
             }
 
-            if (tabName != null){
-                System.out.println("New tab: " + tabName);
-                workBook.setSheetOrder(sheet.getSheetName(), workBook.getSheetIndex(tabName));
-            }
 
             workBook.setSelectedTab(workBook.getSheetIndex(sheet.getSheetName()));
 

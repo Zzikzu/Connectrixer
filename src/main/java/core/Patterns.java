@@ -16,6 +16,7 @@ class Patterns {
     final static String ACTIVE = "ACTIVE";
     final static String PORT = "_PORT";
     final static String E_PORT = "E_PORT";
+    final static String EX_PORT = "EX_PORT";
     final static String F_PORT = "F_PORT";
     final static String SPACE = "\\s";
 }

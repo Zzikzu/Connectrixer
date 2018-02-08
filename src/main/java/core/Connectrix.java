@@ -270,26 +270,38 @@ public class Connectrix {
                         }
 
                         if (online) {
-                            if (switchPort.getPortFlag().equals(E_PORT)) {
-                                line = line.replace("E-Port", E_PORT);
+                            if (switchPort.getPortFlag().equals(E_PORT) || switchPort.getPortFlag().equals(EX_PORT)){
+                                String portType = null;
 
-                                Pattern eportPattern = Pattern.compile(E_PORT);
-                                Pattern wwnPattern = Pattern.compile(WWN);
+                                if (switchPort.getPortFlag().equals(E_PORT)) {
+                                    line = line.replace("E-Port", E_PORT);
+                                    portType = E_PORT;
+                                }
 
-                                Matcher eportMatcher = eportPattern.matcher(line);
-                                if (eportMatcher.find()) {
-                                    line = line.substring(eportMatcher.end());
+                                if (switchPort.getPortFlag().equals(EX_PORT)) {
+                                    line = line.replace("EX-Port", EX_PORT);
+                                    portType = EX_PORT;
+                                }
 
-                                    Matcher wwnMatcher = wwnPattern.matcher(line);
-                                    if (wwnMatcher.find()) {
-                                        wwn = wwnMatcher.group();
-                                        comment = line.substring(wwnMatcher.end());
-                                    } else {
-                                        comment = line;
+                                if (portType != null){
+                                    Pattern wwnPattern = Pattern.compile(WWN);
+                                    Pattern portPattern = Pattern.compile(portType);
+                                    Matcher portMatcher = portPattern.matcher(line);
+
+                                    if (portMatcher.find()) {
+                                        line = line.substring(portMatcher.end());
+
+                                        Matcher wwnMatcher = wwnPattern.matcher(line);
+                                        if (wwnMatcher.find()) {
+                                            wwn = wwnMatcher.group();
+                                            comment = line.substring(wwnMatcher.end());
+                                        } else {
+                                            comment = line;
+                                        }
+                                        comment = comment
+                                                .replace("master", "MASTER")
+                                                .replace(" ", "");
                                     }
-                                    comment = comment
-                                            .replace("master", "MASTER")
-                                            .replace(" ", "");
                                 }
                                 writeLineToWorkbook(switchname, index, slot, port, wwn, portname, alias, comment);
                             }

@@ -91,6 +91,7 @@ class BrocadeSwitch {
                     .grep("FC")
                     .grep(GrepOption.invertMatch, "Router")
                     .grep(GrepOption.invertMatch, "No_Module")
+                    .grep(GrepOption.invertMatch, "FCIP")
                     .toStringResult()
                     .split("\n");
 
@@ -204,7 +205,26 @@ class BrocadeSwitch {
                         portFlag = portFlag.substring(activeMatcher.end());
                         Matcher portMatcher = portPattern.matcher(portFlag);
                         if (portMatcher.find()){
-                            portFlag = (portFlag.substring(0, portFlag.indexOf(PORT)) + PORT).replace(" ", "");
+
+
+                            Pattern ePortPatern = Pattern.compile(E_PORT);
+                            Matcher ePortFlagMatcher = ePortPatern.matcher(portFlag);
+                            if (ePortFlagMatcher.find()){
+                                portFlag = E_PORT;
+                            }
+
+                            Pattern fPortPatern = Pattern.compile(F_PORT);
+                            Matcher fPortFlagMatcher = fPortPatern.matcher(portFlag);
+                            if (fPortFlagMatcher.find()){
+                                portFlag = F_PORT;
+                            }
+
+                            Pattern exPortPatern = Pattern.compile(EX_PORT);
+                            Matcher exPortFlagMatcher = exPortPatern.matcher(portFlag);
+                            if (exPortFlagMatcher.find()){
+                                portFlag = EX_PORT;
+                            }
+
                         }
                     }
 

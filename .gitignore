@@ -1,11 +1,12 @@
 Connectrixer.iml
 target/*
 .idea/*
+files/*
 Workbook.xlsx
 Template.xlsx
 switchshow.txt
 alishow.txt
 hostlist.txt
 portshow.txt
-error.log
 user.properties
+error.log

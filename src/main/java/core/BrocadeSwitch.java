@@ -3,6 +3,7 @@ package core;
 import org.unix4j.Unix4j;
 import org.unix4j.unix.grep.GrepOption;
 import ssh.SshSession;
+import sun.plugin2.os.windows.SECURITY_ATTRIBUTES;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -14,12 +15,12 @@ class BrocadeSwitch {
     private String ipAddres;
     private String hostname;
     private SshSession session;
+    private String[] logicalSwitches;
     private String switchname;
     private String[] portLines;
     private String startIndex;
     private String endIndex;
     private Map<String, String> alishow;
-
     private Map<String, SwitchPort> portMap;
 
 
@@ -39,19 +40,25 @@ class BrocadeSwitch {
 
     }
 
+
     void setInitailData() {
         echo("setting switch initial data");
+            setSwitchName();
+            echo("switchname done");
 
-        setSwitchshow();
-        echo("switchshow done");
+            setLogicalSwitches();
+            echo("check for logical switches done");
 
-        setSwitchPorts(startIndex, endIndex);
-        echo("portshow done");
+            setSwitchshow();
+            echo("switchshow done");
 
-        setAlishow();
-        echo("alishow done");
+            setSwitchPorts(startIndex, endIndex);
+            echo("portshow done");
 
-        echo("initial data set");
+            setAlishow();
+            echo("alishow done");
+
+            echo("initial data set");
     }
 
 
@@ -71,13 +78,19 @@ class BrocadeSwitch {
         return alias;
     }
 
-    private void setSwitchshow() {
-        String switchshow = session.execute(Commands.SWITCHSHOW);
-        switchname = Unix4j.fromString(switchshow)
-                .grep(SWITCHNAME)
+    private void setLogicalSwitches(){
+        logicalSwitches = Unix4j.fromString(session.execute(Commands.LSCFGSHOW))
+                .grep("FID:")
                 .toStringResult()
-                .replace(SWITCHNAME, "")
-                .replace("\t", "");
+                .replace("FID:", "")
+                .replace("\t", "")
+                .replace(" ", "")
+                .split("\n");
+
+    }
+
+    private void setSwitchName(){
+        switchname = session.execute(Commands.SWITCHNAME).replace("\n", "");
 
         if (!hostname.toUpperCase().equals(switchname.toUpperCase())){
             echo("WARNING!");
@@ -85,6 +98,27 @@ class BrocadeSwitch {
             echo("please check your host list");
             hostname = String.valueOf(switchname);
         }
+    }
+
+
+    private void setSwitchshow() {
+        String switchshow;
+
+        if (logicalSwitches.length != 0){
+            StringBuilder switchshowBuilder = new StringBuilder();
+            for (String logicalSwitch : logicalSwitches){
+                switchshowBuilder.append(session.execute(Commands.FOSEXEC
+                                                                    + " "
+                                                                    + logicalSwitch
+                                                                    + " -cmd "
+                                                                    + Commands.SWITCHSHOW));
+            }
+            switchshow = switchshowBuilder.toString();
+
+        }else {
+            switchshow = session.execute(Commands.SWITCHSHOW);
+        }
+
 
         if (switchshow != null) {
             portLines = Unix4j.fromString(switchshow)
@@ -132,11 +166,28 @@ class BrocadeSwitch {
         Pattern wwnPattern = Pattern.compile(WWN);
 
         portMap = new HashMap<>();
-        String portshow = session.execute(Commands.PORTSHOW + " " + startIndex + "-" + endIndex + " -f");
+        String portshow;
+
+        if (logicalSwitches.length != 0){
+            StringBuilder portshowBuilder = new StringBuilder();
+            for (String logicalSwitch : logicalSwitches){
+                portshowBuilder.append(session.execute(Commands.FOSEXEC
+                        + " "
+                        + logicalSwitch
+                        + " -cmd "
+                        + "\""
+                        + Commands.PORTSHOW + " " + startIndex + "-" + endIndex + " -f"
+                        +"\""));
+            }
+            portshow = portshowBuilder.toString();
+        }else {
+            portshow = session.execute(Commands.PORTSHOW + " " + startIndex + "-" + endIndex + " -f");
+        }
+
         String[] portshowArray = portshow.split("\n");
 
 
-        Map<Pattern, String> patternMap = new HashMap<>();
+        Map<Pattern, String> portPatternMap = new HashMap<>();
         ArrayList<Pattern> patterns = new ArrayList<>();
 
         patterns.add(portIndexPattern);
@@ -178,24 +229,24 @@ class BrocadeSwitch {
                         i++;
 
                     } else {
-                        patternMap.put(pattern, line.substring(matcher.end()));
+                        portPatternMap.put(pattern, line.substring(matcher.end()));
                         i++;
                         j++;
                     }
                 } else if (wwnsSearching) {
-                    patternMap.put(portWwnConnectedPattern, wwns.toString());
+                    portPatternMap.put(portWwnConnectedPattern, wwns.toString());
                     wwns.setLength(0);
                     wwnsSearching = false;
 
                 } else {
                     i++;
                 }
-                if (patterns.size() == patternMap.size()) {
-                    portIndex = patternMap.get(portIndexPattern).replace(" ", "");
-                    portName = patternMap.get(portNamePattern).replace(" ", "");
-                    portHealth = patternMap.get(portHealthPattern).replace(" ", "");
+                if (patterns.size() == portPatternMap.size()) {
+                    portIndex = portPatternMap.get(portIndexPattern).replace(" ", "");
+                    portName = portPatternMap.get(portNamePattern).replace(" ", "");
+                    portHealth = portPatternMap.get(portHealthPattern).replace(" ", "");
 
-                    portFlag = patternMap.get(portFlagsPattern);
+                    portFlag = portPatternMap.get(portFlagsPattern);
 
                     Pattern activePattern = Pattern.compile(ACTIVE);
                     Pattern portPattern = Pattern.compile(PORT);
@@ -228,11 +279,11 @@ class BrocadeSwitch {
                         }
                     }
 
-                    portState = patternMap.get(portStatePattern).replaceAll("[^A-Za-z]", "");
-                    portWwn = patternMap.get(portWwnPattern).replace(" ", "");
+                    portState = portPatternMap.get(portStatePattern).replaceAll("[^A-Za-z]", "");
+                    portWwn = portPatternMap.get(portWwnPattern).replace(" ", "");
 
-                    portConnectedWNs = new ArrayList<>(Arrays.asList(patternMap.get(portWwnConnectedPattern).split("\n")));
-                    patternMap.clear();
+                    portConnectedWNs = new ArrayList<>(Arrays.asList(portPatternMap.get(portWwnConnectedPattern).split("\n")));
+                    portPatternMap.clear();
                     j = 0;
 
                     boolean match = false;
@@ -311,7 +362,23 @@ class BrocadeSwitch {
 
 
     private void setAlishow(){
-        String alishowAll = session.execute(Commands.ALISHOW);
+        String alishowAll;
+
+        if (logicalSwitches.length != 0){
+            StringBuilder alishowAllBuilder = new StringBuilder();
+            for (String logicalSwitch : logicalSwitches){
+                alishowAllBuilder.append(session.execute(Commands.FOSEXEC
+                        + " "
+                        + logicalSwitch
+                        + " -cmd "
+                        + Commands.ALISHOW));
+            }
+            alishowAll = alishowAllBuilder.toString();
+
+        }else {
+            alishowAll = session.execute(Commands.ALISHOW);
+        }
+
 
         String[] alishow = alishowAll.split("\n");
         this.alishow = new HashMap<>();
@@ -419,6 +486,9 @@ class BrocadeSwitch {
     }
 
     private static class Commands {
+        static final String LSCFGSHOW = "lscfg --show -n";
+        static final String FOSEXEC = "fosexec --fid";
+        static final String SWITCHNAME = "switchname";
         static final String SWITCHSHOW = "switchshow";
         static final String ALISHOW = "alishow *";
         static final String PORTSHOW = "portshow -i";

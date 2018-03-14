@@ -3,7 +3,6 @@ package core;
 import org.unix4j.Unix4j;
 import org.unix4j.unix.grep.GrepOption;
 import ssh.SshSession;
-import sun.plugin2.os.windows.SECURITY_ATTRIBUTES;
 
 import java.util.*;
 import java.util.regex.Matcher;

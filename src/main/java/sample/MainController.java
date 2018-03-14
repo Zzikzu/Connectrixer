@@ -219,7 +219,7 @@ public class MainController {
 
     @FXML
     public void onEditHostListClicked(){
-        showTextDialog("hostlist.txt", "Host List", true, true);
+        showTextDialog("hostlist.txt", "Host List", true, true, 375.0, 325.0,375.0);
     }
 
 
@@ -261,27 +261,30 @@ public class MainController {
 
     @FXML
     public void onHelpReadMeClicked(){
-        showTextDialog("readme.txt", "Read Me", false, false);
+        showTextDialog("readme.txt", "Read Me", false, false, 375.0, 775.0,1125.0);
     }
 
     @FXML
     public void onHelpErrorLogClicked(){
-        showTextDialog("error.log", "Error Log", false, false);
+        showTextDialog("error.log", "Error Log", false, false, 375.0, 775.0,1125.0);
 
     }
 
     @FXML
     public void onHelpAboutClicked(){
-        showTextDialog("about.txt", "About program", false, false);
+        showTextDialog("about.txt", "About program", false, false, 100.0, 175.0,275.0);
     }
 
-    private void showTextDialog(String fileName, String title, Boolean isEditable, Boolean hasCancelButton) {
+    private void showTextDialog(String fileName, String title, Boolean isEditable, Boolean hasCancelButton, Double prefHeight, Double prefWidth, Double maxWidth) {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.initOwner(mainWindow.getScene().getWindow());
 
         TextDialogSettings.getInstance().setEditable(isEditable);
         FileReadWriter.createEmptyFileIfDontExists(fileName);
         TextDialogSettings.getInstance().setFileToRead(fileName);
+        TextDialogSettings.getInstance().setPrefHeight(prefHeight);
+        TextDialogSettings.getInstance().setPrefWidth(prefWidth);
+        TextDialogSettings.getInstance().setMaxWidth(maxWidth);
 
         FXMLLoader fxmlLoader = new FXMLLoader();
         fxmlLoader.setLocation(getClass().getClassLoader().getResource("text_dialog.fxml"));

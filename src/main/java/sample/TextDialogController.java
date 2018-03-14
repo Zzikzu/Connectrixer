@@ -8,6 +8,9 @@ import javafx.scene.control.TextArea;
 public class TextDialogController {
     private String fileName = TextDialogSettings.getInstance().getFileToRead();
     private boolean isEditable = TextDialogSettings.getInstance().isEditable();
+    private double prefHeight = TextDialogSettings.getInstance().getPrefHeight();
+    private double prefWidth = TextDialogSettings.getInstance().getPrefWidth();
+    private double maxWidth = TextDialogSettings.getInstance().getMaxWidth();
 
     @FXML
     private TextArea dialogTextArea;
@@ -20,8 +23,9 @@ public class TextDialogController {
     private DialogPane dialogPane;
 
     public void initialize(){
-        double prefHeight = 375.0;
-        double prefWidth = 375.0;
+//        double prefHeight = 375.0;
+//        double prefWidth = 375.0;
+
 
         if (fileName != null){
             dialogTextArea.setText(FileReadWriter.read(fileName));
@@ -38,13 +42,19 @@ public class TextDialogController {
 
             double textWidth = longestLine;
             if (textWidth > prefWidth){
-                prefWidth = textWidth;
+
+                if (textWidth < maxWidth){
+                    prefWidth = textWidth;
+                }else {
+                    prefWidth = maxWidth;
+                }
+
             }
 
-            dialogTextArea.setPrefWidth(prefHeight);
+            dialogTextArea.setPrefHeight(prefHeight);
             dialogTextArea.setPrefWidth(prefWidth);
 
-            dialogPane.setPrefWidth(prefHeight);
+            dialogPane.setPrefHeight(prefHeight);
             dialogPane.setPrefWidth(prefWidth);
         }
     }

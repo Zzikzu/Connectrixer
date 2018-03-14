@@ -1,71 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.DialogPane?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.SpinnerValueFactory?>
+<?import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.control.SpinnerValueFactory?>
-<?import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory?>
+<?import javafx.scene.layout.RowConstraints?>
 
-<DialogPane prefHeight="75.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/8.0.121"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.UserDialogController">
+<DialogPane prefHeight="100.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.UserDialogController">
     <content>
         <GridPane>
             <columnConstraints>
-                <ColumnConstraints percentWidth="60"/>
-                <ColumnConstraints percentWidth="40"/>
+                <ColumnConstraints percentWidth="60" />
+                <ColumnConstraints percentWidth="40" />
             </columnConstraints>
 
             <Label text="User Name" GridPane.columnIndex="0" GridPane.rowIndex="0">
                 <GridPane.margin>
-                    <Insets bottom="2.0" top="2.0"/>
+                    <Insets bottom="2.0" top="2.0" />
                 </GridPane.margin>
             </Label>
             <TextField fx:id="userName" GridPane.columnIndex="1" GridPane.rowIndex="0">
                 <GridPane.margin>
-                    <Insets bottom="2.0" top="2.0"/>
+                    <Insets bottom="2.0" top="2.0" />
                 </GridPane.margin>
             </TextField>
             <Label text="Password" GridPane.columnIndex="0" GridPane.rowIndex="1">
                 <GridPane.margin>
-                    <Insets bottom="2.0" top="2.0"/>
+                    <Insets bottom="2.0" top="2.0" />
                 </GridPane.margin>
             </Label>
             <PasswordField fx:id="password" GridPane.columnIndex="1" GridPane.rowIndex="1">
                 <GridPane.margin>
-                    <Insets bottom="2.0" top="2.0"/>
+                    <Insets bottom="2.0" top="2.0" />
                 </GridPane.margin>
             </PasswordField>
             <Label text="Num of sessions" GridPane.columnIndex="0" GridPane.rowIndex="2">
                 <GridPane.margin>
-                    <Insets bottom="2.0" top="2.0"/>
+                    <Insets bottom="2.0" top="2.0" />
                 </GridPane.margin>
             </Label>
-            <Spinner fx:id="sessionCount" GridPane.columnIndex="1" GridPane.rowIndex="2" editable="true">
+            <Spinner fx:id="sessionCount" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="2">
                 <valueFactory>
-                    <SpinnerValueFactory.IntegerSpinnerValueFactory/>
+                    <SpinnerValueFactory.IntegerSpinnerValueFactory />
                 </valueFactory>
                 <GridPane.margin>
-                    <Insets bottom="2.0" top="2.0"/>
+                    <Insets bottom="2.0" top="2.0" />
                 </GridPane.margin>
             </Spinner>
             <Label text="Num of tab" GridPane.columnIndex="0" GridPane.rowIndex="3">
                 <GridPane.margin>
-                    <Insets bottom="2.0" top="2.0"/>
+                    <Insets bottom="2.0" top="2.0" />
                 </GridPane.margin>
             </Label>
-            <Spinner fx:id="tabCount" GridPane.columnIndex="1" GridPane.rowIndex="3" editable="true">
+            <Spinner fx:id="tabCount" editable="true" GridPane.columnIndex="1" GridPane.rowIndex="3">
                 <valueFactory>
-                    <SpinnerValueFactory.IntegerSpinnerValueFactory/>
+                    <SpinnerValueFactory.IntegerSpinnerValueFactory />
                 </valueFactory>
                 <GridPane.margin>
-                    <Insets bottom="2.0" top="2.0"/>
+                    <Insets bottom="2.0" top="2.0" />
                 </GridPane.margin>
             </Spinner>
+            <Label text="Telefonica password" GridPane.columnIndex="0" GridPane.rowIndex="4">
+                <GridPane.margin>
+                    <Insets bottom="2.0" top="2.0" />
+                </GridPane.margin>
+            </Label>
+            <CheckBox fx:id="o2CheckBox" mnemonicParsing="false" text="ON/OFF" GridPane.columnIndex="1" GridPane.rowIndex="4" >
+
+            </CheckBox>
+
 
         </GridPane>
     </content>

@@ -252,6 +252,7 @@ public class MainController {
             UserProperties.getInstance().setSessionCount(controller.getSessionCount());
             UserProperties.getInstance().setTabCount(controller.getTabCount());
             UserProperties.getInstance().setCredentials(controller.getUserName(), controller.getPassword());
+            UserProperties.getInstance().setO2Selected(controller.getO2CheckBox().isSelected());
 
             System.out.println("User setting edited");
 

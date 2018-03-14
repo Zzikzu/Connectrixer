@@ -17,6 +17,7 @@ public class UserProperties {
     private File workDir = null;
     private Integer sessionCount = null;
     private Integer tabCount = null;
+    private Boolean o2Selected = null;
 
 
     private UserProperties(){
@@ -68,18 +69,21 @@ public class UserProperties {
                 }
 
                 String sessionCount = prop.getProperty("sessionCount");
-                if (sessionCount != null){
+                if (sessionCount != null) {
                     this.sessionCount = Integer.parseInt(sessionCount);
-                }else {
+                } else {
                     this.sessionCount = 0;
                 }
 
                 String tabCount = prop.getProperty("tabCount");
-                if (tabCount != null){
+                if (tabCount != null) {
                     this.tabCount = Integer.parseInt(tabCount);
-                }else {
+                } else {
                     this.tabCount = 0;
                 }
+
+                String o2Selected = prop.getProperty("o2Selected");
+                this.o2Selected = o2Selected != null && Boolean.parseBoolean(o2Selected);
 
                 stream.close();
             } else {
@@ -122,6 +126,10 @@ public class UserProperties {
 
                 if (encryptedPassword != null){
                     prop.setProperty("password", encryptedPassword);
+                }
+
+                if (o2Selected != null){
+                    prop.setProperty("o2Selected", o2Selected.toString());
                 }
 
                 // save properties to project root folder
@@ -261,5 +269,17 @@ public class UserProperties {
 
     private void setPassword(String password) {
         encryptPassword(password);
+    }
+
+    public Boolean getO2Selected() {
+        if (o2Selected == null){
+            getProperties();
+        }
+        return o2Selected;
+    }
+
+    public void setO2Selected(Boolean o2Selected) {
+        this.o2Selected = o2Selected;
+        saveProperties();
     }
 }

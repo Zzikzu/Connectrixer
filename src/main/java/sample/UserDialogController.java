@@ -2,10 +2,7 @@ package sample;
 
 import io.UserProperties;
 import javafx.fxml.FXML;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 
 public class UserDialogController {
 
@@ -22,6 +19,9 @@ public class UserDialogController {
 
     @FXML
     private PasswordField password;
+
+    @FXML
+    private CheckBox o2CheckBox;
 
     public void initialize(){
         sessionCountFactory = (SpinnerValueFactory.IntegerSpinnerValueFactory) sessionCount.getValueFactory();
@@ -41,6 +41,7 @@ public class UserDialogController {
         sessionCountFactory.setValue(UserProperties.getInstance().getSessionCount());
         tabCountFactory.setValue(UserProperties.getInstance().getTabCount());
         password.setText(UserProperties.getInstance().getPassword());
+        o2CheckBox.setSelected(UserProperties.getInstance().getO2Selected());
     }
 
     String getUserName(){
@@ -58,4 +59,9 @@ public class UserDialogController {
     String getPassword() {
         return password.getText();
     }
+
+    public CheckBox getO2CheckBox() {
+        return o2CheckBox;
+    }
+
 }

@@ -22,6 +22,10 @@ public class SshSession {
         this.hostname = hostname;
         user = UserProperties.getInstance().getLogin();
         String password = UserProperties.getInstance().getPassword();
+        if  (UserProperties.getInstance().getO2Selected()){
+            password = password + hostname.substring(hostname.length() - 2, hostname.length() - 1).toLowerCase();
+        }
+
         int port = 22;
         echo("Opening session for: " + ip + " - " + hostname);
         session = getSession(user, ip, port, password);

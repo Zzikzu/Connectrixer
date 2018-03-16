@@ -78,13 +78,18 @@ class BrocadeSwitch {
     }
 
     private void setLogicalSwitches(){
-        logicalSwitches = Unix4j.fromString(session.execute(Commands.LSCFGSHOW))
+        String stringResult = Unix4j.fromString(session.execute(Commands.LSCFGSHOW))
                 .grep("FID:")
                 .toStringResult()
                 .replace("FID:", "")
                 .replace("\t", "")
-                .replace(" ", "")
-                .split("\n");
+                .replace(" ", "");
+
+        if (stringResult.isEmpty()){
+            logicalSwitches = new String[0];
+        } else {
+            logicalSwitches = stringResult.split("\n");
+        }
 
     }
 
@@ -110,7 +115,9 @@ class BrocadeSwitch {
                                                                     + " "
                                                                     + logicalSwitch
                                                                     + " -cmd "
-                                                                    + Commands.SWITCHSHOW));
+                                                                    + "\""
+                                                                    + Commands.SWITCHSHOW
+                                                                    + "\""));
             }
             switchshow = switchshowBuilder.toString();
 
@@ -138,6 +145,7 @@ class BrocadeSwitch {
                 }
             }
             Collections.sort(indexes);
+//            PROBLEM
             startIndex = indexes.get(0).toString();
             endIndex = indexes.get(indexes.size() - 1).toString();
         }
@@ -370,7 +378,9 @@ class BrocadeSwitch {
                         + " "
                         + logicalSwitch
                         + " -cmd "
-                        + Commands.ALISHOW));
+                        + "\""
+                        + Commands.ALISHOW
+                        +"\""));
             }
             alishowAll = alishowAllBuilder.toString();
 

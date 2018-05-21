@@ -10,6 +10,7 @@ I performs below commands and process the output.
 Requirements:
 -------------
 -	Connectrixer is powered by Java using JavaFX GUI, so it is an platform independent application. It is recommended to update workstation to use Java 8 - 1.8.0_151 for full compatibility.
+-   FOS 7.3 minimal version for full compatibility
 -	Connectivity to production environment via AdminLAN enabled
 -	Single account (whit same password) for all SAN switches
 

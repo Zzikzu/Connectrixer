@@ -47,6 +47,10 @@ public class MainController {
     @FXML
     private GridPane mainWindow;
 
+    private static final String RUN_BUTTON_LABEL = "Run";
+    private static final String STOP_BUTTON_LABEL = "STOP";
+    private boolean connectrixerIsRunning;
+
     public void initialize(){
         redirectOutputStream();
         fileOpen.setAccelerator(new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN));
@@ -83,30 +87,32 @@ public class MainController {
 
     @FXML
     public void onRunButtonClicked() {
-        Thread thread = new Thread(() -> {
-            buttonsInactive(true);
-            if (ExcelWorkbook.getInstance().isWorkbookLoaded() && UserProperties.getInstance().credentialsSet()){
-                Connectrix.getInstance().start();
+        if (!connectrixerIsRunning){
+            Thread thread = new Thread(() -> {
+                buttonsInactive(true);
+                if (ExcelWorkbook.getInstance().isWorkbookLoaded() && UserProperties.getInstance().credentialsSet()){
+                    Connectrix.getInstance().start();
+                    buttonsInactive(false);
+                }
+
+                if (!ExcelWorkbook.getInstance().isWorkbookLoaded()){
+                    System.out.println();
+                    System.out.println("No Workbook loaded!");
+                    System.out.println("Please load it");
+                }
+
+                if (!UserProperties.getInstance().credentialsSet()){
+                    System.out.println();
+                    System.out.println("Login credentials not set.");
+                    System.out.println("Please run: Edit => User settings");
+                }
+
+
                 buttonsInactive(false);
-            }
 
-            if (!ExcelWorkbook.getInstance().isWorkbookLoaded()){
-                System.out.println();
-                System.out.println("No Workbook loaded!");
-                System.out.println("Please load it");
-            }
-
-            if (!UserProperties.getInstance().credentialsSet()){
-                System.out.println();
-                System.out.println("Login credentials not set.");
-                System.out.println("Please run: Edit => User settings");
-            }
-
-
-            buttonsInactive(false);
-
-        });
-        thread.start();
+            });
+            thread.start();
+        }
     }
 
     @FXML
@@ -327,7 +333,17 @@ public class MainController {
     }
 
     private void buttonsInactive(boolean active){
-        runButton.setDisable(active);
+        if (active){
+            Platform.runLater(() -> {
+                runButton.setText(STOP_BUTTON_LABEL);
+                connectrixerIsRunning = true;
+            });
+        } else {
+            Platform.runLater(() -> {
+                runButton.setText(RUN_BUTTON_LABEL);
+                connectrixerIsRunning = false;
+            });
+        }
         menuBar.setDisable(active);
     }
 

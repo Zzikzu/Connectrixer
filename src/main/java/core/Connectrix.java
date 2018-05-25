@@ -6,6 +6,7 @@ import io.ExcelWorkbook;
 import io.FileReadWriter;
 import io.UserProperties;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -25,9 +26,13 @@ public class Connectrix {
     private int runningSessions;
     private boolean hostListLoaded;
 
+    private ArrayList<String> succesfulResults;
+    private ArrayList<String> unsuccessfulResults;
+
 
     private Connectrix() {
-
+        succesfulResults = new ArrayList<>();
+        unsuccessfulResults = new ArrayList<>();
     }
 
     public static Connectrix getInstance() {
@@ -39,6 +44,8 @@ public class Connectrix {
 
     public void start() {
         if (hostListLoaded) {
+            succesfulResults.clear();
+            unsuccessfulResults.clear();
 
 
             long startTime = System.currentTimeMillis();
@@ -109,10 +116,36 @@ public class Connectrix {
     private void tryToEnd(long startTime){
         if (swDoneCount == swCount){
             long endTime = System.currentTimeMillis();
+            printResult();
+
             echo("Runtime: " + (endTime - startTime)/1000 + " sec", true, false);
             echo("Don't forget to save your workbook.", false, true);
             connectrixIsRunning = false;
         }
+    }
+
+    private void printResult(){
+        System.out.println("****************************************************************");
+        System.out.println("RESULT:");
+
+        if (!succesfulResults.isEmpty()){
+            System.out.println();
+
+            System.out.println("Successfully completed:");
+            for (String result : succesfulResults){
+                System.out.println(result);
+            }
+        }
+
+        if (!unsuccessfulResults.isEmpty()){
+            System.out.println();
+            System.out.println("Not completed:");
+            for (String result : unsuccessfulResults){
+                System.out.println(result);
+            }
+        }
+
+        System.out.println("****************************************************************");
     }
 
 
@@ -200,6 +233,8 @@ public class Connectrix {
         private String portname;
         private String alias;
         private String comment;
+
+
 
 
         MainProcess(int id, String switchIp, String swHostname) {
@@ -332,15 +367,27 @@ public class Connectrix {
 
                 ExcelWorkbook.getInstance().setInFrozenState(false, switchname);
                 sw.disconnect();
+                saveResult(swHostname, switchIp, true);
 
             } else {
                 Messages.getInstance().customErrorMeassage("Unable to run the process for " + swHostname);
-                Messages.getInstance().customErrorMeassage("Connection error for: " + switchIp);
+                Messages.getInstance().customErrorMeassage("Connection error for: " + swHostname + " - " + switchIp);
+                saveResult(swHostname, switchIp, false);
             }
 
             swDoneCount++;
             runningSessions--;
 
+        }
+
+        private void saveResult(String swHostname, String switchIp, boolean successful){
+            if (successful){
+                succesfulResults.add(swHostname + " " + switchIp);
+            }
+
+            if (!successful){
+                unsuccessfulResults.add(swHostname + " " + switchIp);
+            }
         }
     }
 }

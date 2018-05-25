@@ -117,7 +117,7 @@ public class MainController {
                 connectrixIsRunning = false;
 
             });
-            //For stop functionality
+            //For stop functionalityl
 //            ThreadRegister.getInstance().put(thread);
             thread.start();
         }

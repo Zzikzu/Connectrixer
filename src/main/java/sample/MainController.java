@@ -1,5 +1,6 @@
 package sample;
 
+import concurrency.ThreadRegister;
 import core.Connectrix;
 import io.*;
 import javafx.application.Platform;
@@ -49,7 +50,7 @@ public class MainController {
 
     private static final String RUN_BUTTON_LABEL = "Run";
     private static final String STOP_BUTTON_LABEL = "STOP";
-    private boolean connectrixerIsRunning;
+    private boolean connectrixIsRunning;
 
     public void initialize(){
         redirectOutputStream();
@@ -87,32 +88,45 @@ public class MainController {
 
     @FXML
     public void onRunButtonClicked() {
-        if (!connectrixerIsRunning){
+        if (!connectrixIsRunning){
+
+            connectrixIsRunning = true;
+
             Thread thread = new Thread(() -> {
-                buttonsInactive(true);
-                if (ExcelWorkbook.getInstance().isWorkbookLoaded() && UserProperties.getInstance().credentialsSet()){
-                    Connectrix.getInstance().start();
-                    buttonsInactive(false);
-                }
+                MainController.this.buttonsInactive(true);
 
-                if (!ExcelWorkbook.getInstance().isWorkbookLoaded()){
-                    System.out.println();
-                    System.out.println("No Workbook loaded!");
-                    System.out.println("Please load it");
-                }
+                    if (ExcelWorkbook.getInstance().isWorkbookLoaded() && UserProperties.getInstance().credentialsSet()) {
+                        Connectrix.getInstance().start();
+                        MainController.this.buttonsInactive(false);
+                    }
 
-                if (!UserProperties.getInstance().credentialsSet()){
-                    System.out.println();
-                    System.out.println("Login credentials not set.");
-                    System.out.println("Please run: Edit => User settings");
-                }
+                    if (!ExcelWorkbook.getInstance().isWorkbookLoaded()) {
+                        System.out.println();
+                        System.out.println("No Workbook loaded!");
+                        System.out.println("Please load it");
+                    }
+
+                    if (!UserProperties.getInstance().credentialsSet()) {
+                        System.out.println();
+                        System.out.println("Login credentials not set.");
+                        System.out.println("Please run: Edit => User settings");
+                    }
 
 
-                buttonsInactive(false);
+                MainController.this.buttonsInactive(false);
+                connectrixIsRunning = false;
 
             });
+            //For stop functionality
+//            ThreadRegister.getInstance().put(thread);
             thread.start();
         }
+
+        //For stop functionality
+//        if (connectrixIsRunning){
+//            Connectrix.getInstance().end();
+//            ThreadRegister.getInstance().killAll();
+//        }
     }
 
     @FXML
@@ -333,17 +347,17 @@ public class MainController {
     }
 
     private void buttonsInactive(boolean active){
-        if (active){
-            Platform.runLater(() -> {
-                runButton.setText(STOP_BUTTON_LABEL);
-                connectrixerIsRunning = true;
-            });
-        } else {
-            Platform.runLater(() -> {
-                runButton.setText(RUN_BUTTON_LABEL);
-                connectrixerIsRunning = false;
-            });
-        }
+        //For stop functionality
+//        if (active){
+//            Platform.runLater(() -> {
+//                runButton.setText(STOP_BUTTON_LABEL);
+//            });
+//        } else {
+//            Platform.runLater(() -> {
+//                runButton.setText(RUN_BUTTON_LABEL);
+//            });
+//        }
+        runButton.setDisable(active);
         menuBar.setDisable(active);
     }
 

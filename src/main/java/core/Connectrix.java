@@ -101,6 +101,11 @@ public class Connectrix {
         }
     }
 
+    //For stop functionality
+//    public void end(){
+//        connectrixIsRunning = false;
+//    }
+
     private void tryToEnd(long startTime){
         if (swDoneCount == swCount){
             long endTime = System.currentTimeMillis();

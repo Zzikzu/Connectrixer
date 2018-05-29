@@ -168,6 +168,7 @@ public class MainController {
     @FXML
     public void onFileSaveClicked(){
         Thread thread = new Thread(() -> {
+            System.out.println("Saving..");
             buttonsInactive(true);
             if (ExcelWorkbook.getInstance().isWorkbookLoaded()){
                 ExcelWorkbook.getInstance().saveWorkbook();

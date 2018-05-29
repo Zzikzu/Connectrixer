@@ -30,6 +30,8 @@ public class Connectrix {
     private ArrayList<String> unsuccessfulResults;
 
 
+
+
     private Connectrix() {
         succesfulResults = new ArrayList<>();
         unsuccessfulResults = new ArrayList<>();
@@ -149,8 +151,8 @@ public class Connectrix {
     }
 
 
-    private void writeLineToWorkbook(String switchname, String index, String slot, String port, String wwn, String portname, String alias, String comment){
-        String[] outputs ={switchname, index, slot, port, wwn, portname, alias, comment};
+    private void writeLineToWorkbook(String switchname, String fid, String index, String slot, String port, String wwn, String portname, String alias, String comment){
+        String[] outputs ={switchname, fid, index, slot, port, wwn, portname, alias, comment};
         ExcelWorkbook.getInstance().writeLineToReserved(outputs);
     }
 
@@ -233,6 +235,7 @@ public class Connectrix {
         private String portname;
         private String alias;
         private String comment;
+        private String fid;
 
 
 
@@ -252,7 +255,7 @@ public class Connectrix {
 
                 switchname = sw.getSwitchname();
 
-                String portLines[] = sw.getPortlines();
+                String portLines[] = sw.getSwitchshowPortlines();
 
                 Pattern numPattern = Pattern.compile(ZERO_TO_FOUR_FIGURE_NUMBER);
 
@@ -269,103 +272,111 @@ public class Connectrix {
                     ExcelWorkbook.getInstance().setInFrozenState(true, switchname);
                 }
 
-                System.out.println(swHostname + ": processing and writing");
 
-                for (String line : portLines) {
+                    System.out.println(swHostname + ": processing and writing");
 
-                    SwitchPort switchPort;
-                    Boolean online = false;
-                    Boolean npiv = false;
-                    index = "";
-                    slot = "";
-                    port = "";
-                    wwn = "";
-                    portname = "";
-                    alias = "";
-                    comment = "";
+                    for (String line : portLines) {
 
-
-                    Matcher numMatcher = numPattern.matcher(line);
-                    if (numMatcher.find()) {
-                        index = numMatcher.group(0).replace(" ", "");
-
-                        switchPort = sw.getPort(index);
-                        slot = switchPort.getSlot();
-                        port = switchPort.getPort();
-                        String[] wwns = switchPort.getWwnsConnected();
-                        portname = switchPort.getName();
-
-                        if (switchPort.getState().equals("Online")) {
-                            online = true;
-                        }
-
-                        if (line.contains("NPIV")) {
-                            npiv = true;
-                        }
+                        SwitchPort switchPort;
+                        Boolean online = false;
+                        Boolean npiv = false;
+                        index = "";
+                        slot = "";
+                        port = "";
+                        wwn = "";
+                        portname = "";
+                        alias = "";
+                        comment = "";
+                        fid = "";
 
 
-                        if (!online) {
-                            comment = "Offline";
-                            writeLineToWorkbook(switchname, index, slot, port, wwn, portname, alias, comment);
-                        }
+                        Matcher numMatcher = numPattern.matcher(line);
+                        if (numMatcher.find()) {
+                            index = numMatcher.group(0).replace(" ", "");
 
-                        if (online) {
-                            if (switchPort.getPortFlag().equals(E_PORT) || switchPort.getPortFlag().equals(EX_PORT)){
-                                String portType = null;
+                            switchPort = sw.getPort(index);
 
-                                if (switchPort.getPortFlag().equals(E_PORT)) {
-                                    line = line.replace("E-Port", E_PORT);
-                                    portType = E_PORT;
-                                }
+                            fid = switchPort.getFid();
+                            slot = switchPort.getSlot();
+                            port = switchPort.getPort();
+                            String[] wwns = switchPort.getWwnsConnected();
+                            portname = switchPort.getName();
 
-                                if (switchPort.getPortFlag().equals(EX_PORT)) {
-                                    line = line.replace("EX-Port", EX_PORT);
-                                    portType = EX_PORT;
-                                }
-
-                                if (portType != null){
-                                    Pattern wwnPattern = Pattern.compile(WWN);
-                                    Pattern portPattern = Pattern.compile(portType);
-                                    Matcher portMatcher = portPattern.matcher(line);
-
-                                    if (portMatcher.find()) {
-                                        line = line.substring(portMatcher.end());
-
-                                        Matcher wwnMatcher = wwnPattern.matcher(line);
-                                        if (wwnMatcher.find()) {
-                                            wwn = wwnMatcher.group();
-                                            comment = line.substring(wwnMatcher.end());
-                                        } else {
-                                            comment = line;
-                                        }
-                                        comment = comment
-                                                .replace("master", "MASTER")
-                                                .replace(" ", "");
-                                    }
-                                }
-                                writeLineToWorkbook(switchname, index, slot, port, wwn, portname, alias, comment);
+                            if (switchPort.getState().equals("Online")) {
+                                online = true;
                             }
 
-                            if (switchPort.getPortFlag().equals(F_PORT)) {
-                                if (npiv) {
-                                    for (String w : wwns) {
-                                        wwn = w;
+                            if (line.contains("NPIV")) {
+                                npiv = true;
+                            }
+
+
+
+                            if (!online) {
+                                comment = "Offline";
+                                writeLineToWorkbook(switchname, fid, index, slot, port, wwn, portname, alias, comment);
+                            }
+
+                            if (online) {
+                                if (switchPort.getPortFlag().equals(E_PORT) || switchPort.getPortFlag().equals(EX_PORT)) {
+                                    String portType = null;
+
+                                    if (switchPort.getPortFlag().equals(E_PORT)) {
+                                        line = line.replace("E-Port", E_PORT);
+                                        portType = E_PORT;
+                                    }
+
+                                    if (switchPort.getPortFlag().equals(EX_PORT)) {
+                                        line = line.replace("EX-Port", EX_PORT);
+                                        portType = EX_PORT;
+                                    }
+
+                                    if (portType != null) {
+                                        Pattern wwnPattern = Pattern.compile(WWN);
+                                        Pattern portPattern = Pattern.compile(portType);
+                                        Matcher portMatcher = portPattern.matcher(line);
+
+                                        if (portMatcher.find()) {
+                                            line = line.substring(portMatcher.end());
+
+                                            Matcher wwnMatcher = wwnPattern.matcher(line);
+                                            if (wwnMatcher.find()) {
+                                                wwn = wwnMatcher.group();
+                                                comment = line.substring(wwnMatcher.end());
+                                            } else {
+                                                comment = line;
+                                            }
+                                            comment = comment
+                                                    .replace("master", "MASTER")
+                                                    .replace(" ", "");
+                                        }
+                                    }
+                                    writeLineToWorkbook(switchname, fid, index, slot, port, wwn, portname, alias, comment);
+                                }
+
+                                if (switchPort.getPortFlag().equals(F_PORT)) {
+                                    if (npiv) {
+                                        for (String w : wwns) {
+                                            wwn = w;
+                                            alias = sw.getAlias(wwn);
+                                            writeLineToWorkbook(switchname, fid, index, slot, port, wwn, portname, alias, comment);
+                                        }
+                                    } else {
+                                        if (wwns.length == 1) {
+                                            wwn = wwns[0];
+                                        }
                                         alias = sw.getAlias(wwn);
-                                        writeLineToWorkbook(switchname, index, slot, port, wwn, portname, alias, comment);
+                                        writeLineToWorkbook(switchname, fid, index, slot, port, wwn, portname, alias, comment);
                                     }
-                                } else {
-                                    if (wwns.length == 1) {
-                                        wwn = wwns[0];
-                                    }
-                                    alias = sw.getAlias(wwn);
-                                    writeLineToWorkbook(switchname, index, slot, port, wwn, portname, alias, comment);
                                 }
                             }
                         }
                     }
-                }
 
-                ExcelWorkbook.getInstance().setInFrozenState(false, switchname);
+                    ExcelWorkbook.getInstance().setInFrozenState(false, switchname);
+
+
+
                 sw.disconnect();
                 saveResult(swHostname, switchIp, true);
 

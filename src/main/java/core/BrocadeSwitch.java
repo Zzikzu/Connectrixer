@@ -16,7 +16,7 @@ class BrocadeSwitch {
     private SshSession session;
     private String[] logicalSwitches;
     private String switchname;
-    private String[] portLines;
+    private String[] switchshowPortLines;
     private String startIndex;
     private String endIndex;
     private Map<String, String> alishow;
@@ -65,8 +65,8 @@ class BrocadeSwitch {
         return switchname;
     }
 
-    String[] getPortlines() {
-        return portLines;
+    String[] getSwitchshowPortlines() {
+        return switchshowPortLines;
     }
 
     String getAlias(String wwn) {
@@ -106,7 +106,7 @@ class BrocadeSwitch {
 
 
     private void setSwitchshow() {
-        String switchshow;
+        HashMap<String, String> switchshowMap = new HashMap<>();
 
         if (logicalSwitches.length != 0){
             StringBuilder switchshowBuilder = new StringBuilder();
@@ -118,34 +118,58 @@ class BrocadeSwitch {
                                                                     + "\""
                                                                     + Commands.SWITCHSHOW
                                                                     + "\""));
+                switchshowMap.put(logicalSwitch, switchshowBuilder.toString());
             }
-            switchshow = switchshowBuilder.toString();
 
         }else {
-            switchshow = session.execute(Commands.SWITCHSHOW);
+            switchshowMap.put("0", session.execute(Commands.SWITCHSHOW));
         }
 
+        if (!switchshowMap.isEmpty()) {
+            ArrayList<String> resultList = new ArrayList<>();
+            String[] tmpPortLines;
 
-        if (switchshow != null) {
-            portLines = Unix4j.fromString(switchshow)
-                    .grep("FC")
-                    .grep(GrepOption.invertMatch, "Router")
-                    .grep(GrepOption.invertMatch, "No_Module")
-                    .grep(GrepOption.invertMatch, "FCIP")
-                    .toStringResult()
-                    .split("\n");
+            if (logicalSwitches.length != 0){
+                for (String logicalSwitch : logicalSwitches){
+
+                    tmpPortLines = Unix4j.fromString(switchshowMap.get(logicalSwitch))
+                            .grep("FC")
+                            .grep(GrepOption.invertMatch, "Router")
+                            .grep(GrepOption.invertMatch, "No_Module")
+                            .grep(GrepOption.invertMatch, "FCIP")
+                            .toStringResult()
+                            .split("\n");
+
+                    for (String portLine : tmpPortLines){
+                        resultList.add(portLine + " " + "FID"+logicalSwitch);
+                    }
+                }
+                switchshowPortLines = resultList.toArray(new String[0]);
+
+
+            }else {
+                switchshowPortLines = Unix4j.fromString(switchshowMap.get("0"))
+                        .grep("FC")
+                        .grep(GrepOption.invertMatch, "Router")
+                        .grep(GrepOption.invertMatch, "No_Module")
+                        .grep(GrepOption.invertMatch, "FCIP")
+                        .toStringResult()
+                        .split("\n");
+            }
+
+
 
             ArrayList<Integer> indexes = new ArrayList<>();
             Pattern numPattern = Pattern.compile(ZERO_TO_FOUR_FIGURE_NUMBER);
 
-            for (String line : portLines){
+            for (String line : switchshowPortLines){
                 Matcher numMatcher = numPattern.matcher(line);
                 if (numMatcher.find()) {
                     indexes.add(Integer.parseInt(numMatcher.group(0).replace(" ", "")));
                 }
             }
             Collections.sort(indexes);
-//            PROBLEM
+
             startIndex = indexes.get(0).toString();
             endIndex = indexes.get(indexes.size() - 1).toString();
         }
@@ -160,6 +184,7 @@ class BrocadeSwitch {
         String portFlag;
         String portState;
         String portWwn;
+        String portFid = null;
         ArrayList<String> portConnectedWNs;
 
         Pattern portIndexPattern = Pattern.compile(PORTINDEX);
@@ -169,7 +194,6 @@ class BrocadeSwitch {
         Pattern portStatePattern = Pattern.compile(PORTSTATE);
         Pattern portWwnPattern = Pattern.compile(PORTWWN);
         Pattern portWwnConnectedPattern = Pattern.compile(PORTWWN_CONNECTED);
-
         Pattern wwnPattern = Pattern.compile(WWN);
 
         portMap = new HashMap<>();
@@ -204,6 +228,7 @@ class BrocadeSwitch {
         patterns.add(portStatePattern);
         patterns.add(portWwnPattern);
         patterns.add(portWwnConnectedPattern);
+
 
         boolean wwnsSearching = false;
         StringBuilder wwns = new StringBuilder();
@@ -252,7 +277,6 @@ class BrocadeSwitch {
                     portIndex = portPatternMap.get(portIndexPattern).replace(" ", "");
                     portName = portPatternMap.get(portNamePattern).replace(" ", "");
                     portHealth = portPatternMap.get(portHealthPattern).replace(" ", "");
-
                     portFlag = portPatternMap.get(portFlagsPattern);
 
                     Pattern activePattern = Pattern.compile(ACTIVE);
@@ -294,10 +318,20 @@ class BrocadeSwitch {
                     j = 0;
 
                     boolean match = false;
-                    for (String portLine : portLines) {
+                    for (String portLine : switchshowPortLines) {
                         if (match) {
                             break;
                         }
+
+                        Pattern portFidPattern = Pattern.compile(FID);
+                        Matcher portFidMatcher = portFidPattern.matcher(portLine);
+
+                        if (portFidMatcher.find()){
+                            portFid = portFidMatcher.group(0).replace("FID", "");
+                        }else  {
+                            portFid = "N/A";
+                        }
+
 
                         Pattern numPattern = Pattern.compile(ZERO_TO_FOUR_FIGURE_NUMBER);
                         Matcher numMatcher = numPattern.matcher(portLine);
@@ -307,6 +341,7 @@ class BrocadeSwitch {
                         portSlot = "";
                         portPort = "";
 
+                        //goes for first 3 numeric data in a portline (from switchshow)
                         while (numMatcher.find()) {
                             int max = 1;
 
@@ -351,7 +386,7 @@ class BrocadeSwitch {
                     }
 
 
-                    SwitchPort port = new SwitchPort(portIndex, portSlot, portPort, portName, portHealth, portFlag, portState, portWwn, portConnectedWNs.toArray(new String[portConnectedWNs.size()]));
+                    SwitchPort port = new SwitchPort(portFid, portIndex, portSlot, portPort, portName, portHealth, portFlag, portState, portWwn, portConnectedWNs.toArray(new String[0]));
                     portMap.put(port.getIndex(), port);
 
                     portSlot = null;
@@ -433,6 +468,7 @@ class BrocadeSwitch {
         }
     }
 
+
     private void echo(String meassage){
         System.out.println(hostname + ": " + meassage);
     }
@@ -440,7 +476,7 @@ class BrocadeSwitch {
 
     static class SwitchPort {
 
-
+        private String fid;
         private String index;
         private String slot;
         private String port;
@@ -453,7 +489,8 @@ class BrocadeSwitch {
 
 
 
-        SwitchPort(String index, String slot, String port, String name, String health, String portFlag, String state, String wwn, String[] wwnsConnected) {
+        SwitchPort(String fid, String index, String slot, String port, String name, String health, String portFlag, String state, String wwn, String[] wwnsConnected) {
+            this.fid = fid;
             this.index = index;
             this.slot = slot;
             this.port = port;
@@ -463,6 +500,10 @@ class BrocadeSwitch {
             this.state = state;
             this.wwn = wwn;
             this.wwnsConnected = wwnsConnected;
+        }
+
+        String getFid(){
+            return fid;
         }
 
         String getIndex() {
@@ -501,5 +542,6 @@ class BrocadeSwitch {
         static final String SWITCHSHOW = "switchshow";
         static final String ALISHOW = "alishow *";
         static final String PORTSHOW = "portshow -i";
+        static final String PORTNAME = "portname -i";
     }
 }

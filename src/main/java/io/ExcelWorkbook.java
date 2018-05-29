@@ -164,7 +164,7 @@ public class ExcelWorkbook {
         }
 
         private void setHeader(){
-            String[] cells ={"Switch", "Index", "Slot", "Port", "WWN", "PortName", "Alias", "Comment"};
+            String[] cells ={"Switch", "FID", "Index", "Slot", "Port", "WWN", "PortName", "Alias", "Comment"};
             writeLine(cells);
             headerRow = sheet.getRow(0);
         }

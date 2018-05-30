@@ -21,6 +21,7 @@ class BrocadeSwitch {
     private String endIndex;
     private Map<String, String> alishow;
     private Map<String, SwitchPort> portMap;
+    private static final String NOT_AVAIALABLE = "N/A";
 
 
     BrocadeSwitch(String ipAddres, String hostname) {
@@ -141,7 +142,9 @@ class BrocadeSwitch {
                             .split("\n");
 
                     for (String portLine : tmpPortLines){
-                        resultList.add(portLine + " " + "FID"+logicalSwitch);
+                        if (!portLine.isEmpty()){   //add FID to valid lines
+                            resultList.add(portLine + " " + "FID"+logicalSwitch);
+                        }
                     }
                 }
                 switchshowPortLines = resultList.toArray(new String[0]);
@@ -327,9 +330,10 @@ class BrocadeSwitch {
                         Matcher portFidMatcher = portFidPattern.matcher(portLine);
 
                         if (portFidMatcher.find()){
+//                            System.out.println("portline: " + portLine);
                             portFid = portFidMatcher.group(0).replace("FID", "");
                         }else  {
-                            portFid = "N/A";
+                            portFid = NOT_AVAIALABLE;
                         }
 
 
@@ -464,6 +468,23 @@ class BrocadeSwitch {
                 this.alishow.put(wwn, alias);
                 alias = null;
                 wwn = null;
+            }
+        }
+    }
+
+    void setPortname(String fid, String portIndex, String name){
+        if (!name.isEmpty()){
+            if (fid.equals(NOT_AVAIALABLE)){
+                session.execute(Commands.PORTNAME + " " + portIndex + " -n " + name);
+
+            }else{
+                session.execute(Commands.FOSEXEC
+                        + " "
+                        + fid
+                        + " -cmd "
+                        + "\""
+                        + Commands.PORTNAME + " " + portIndex + " -n " + name
+                        + "\"");
             }
         }
     }

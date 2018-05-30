@@ -29,7 +29,7 @@ public class Connectrix {
     private ArrayList<String> succesfulResults;
     private ArrayList<String> unsuccessfulResults;
 
-
+    private boolean createPortnames;
 
 
     private Connectrix() {
@@ -120,8 +120,11 @@ public class Connectrix {
             long endTime = System.currentTimeMillis();
             printResult();
 
-            echo("Runtime: " + (endTime - startTime)/1000 + " sec", true, false);
-            echo("Don't forget to save your workbook.", false, true);
+            echo("Runtime: " + (endTime - startTime)/1000 + " sec", false, false);
+
+            if (!createPortnames){
+                echo("Don't forget to save your workbook.", false, true);
+            }
             connectrixIsRunning = false;
         }
     }
@@ -223,6 +226,23 @@ public class Connectrix {
         }
     }
 
+    public boolean getCreatePortnames(){
+        return createPortnames;
+    }
+
+    public void setCreatePortnames(boolean set){
+        createPortnames = set;
+
+        if (!createPortnames){
+            Messages.getInstance().customInfoMessage("Mode set to create excel documentation");
+        }
+
+        if (createPortnames){
+            Messages.getInstance().customInfoMessage("Mode set to create portnames on SAN switches."+ System.lineSeparator() +"WARNING: Please be careful as this option will overwrite the portnames on selected switches based on actual aliases");
+
+        }
+    }
+
     private class MainProcess {
         private String switchIp;
         private String swHostname;
@@ -259,23 +279,34 @@ public class Connectrix {
 
                 Pattern numPattern = Pattern.compile(ZERO_TO_FOUR_FIGURE_NUMBER);
 
-                while (ExcelWorkbook.getInstance().isInFrozenState()) {
-                    try {
-                        System.out.println(swHostname + ": workbook frozen, waiting");
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+
+                if  (!createPortnames){
+                    while (ExcelWorkbook.getInstance().isInFrozenState()) {
+                        try {
+                            System.out.println(swHostname + ": workbook frozen, waiting");
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (!ExcelWorkbook.getInstance().isInFrozenState()) {
+                        ExcelWorkbook.getInstance().setInFrozenState(true, switchname);
                     }
                 }
 
-                if (!ExcelWorkbook.getInstance().isInFrozenState()) {
-                    ExcelWorkbook.getInstance().setInFrozenState(true, switchname);
+                if  (!createPortnames){
+                    System.out.println(swHostname + ": processing and writing");
+                } else {
+                    System.out.println(swHostname + ": setting portnames");
                 }
 
 
-                    System.out.println(swHostname + ": processing and writing");
 
+                    int counter = 0;
                     for (String line : portLines) {
+                        counter++;
+                        int allLines = portLines.length;
 
                         SwitchPort switchPort;
                         Boolean online = false;
@@ -288,6 +319,10 @@ public class Connectrix {
                         alias = "";
                         comment = "";
                         fid = "";
+
+                        if (counter == allLines / 2){
+                            System.out.println(swHostname + ": 50% done");
+                        }
 
 
                         Matcher numMatcher = numPattern.matcher(line);
@@ -310,14 +345,15 @@ public class Connectrix {
                                 npiv = true;
                             }
 
-
-
                             if (!online) {
-                                comment = "Offline";
-                                writeLineToWorkbook(switchname, fid, index, slot, port, wwn, portname, alias, comment);
+                                if (!createPortnames){
+                                    comment = "Offline";
+                                    writeLineToWorkbook(switchname, fid, index, slot, port, wwn, portname, alias, comment);
+                                }
                             }
 
                             if (online) {
+                                //For lines with E_PORT or EX_PORT - switch, router connection
                                 if (switchPort.getPortFlag().equals(E_PORT) || switchPort.getPortFlag().equals(EX_PORT)) {
                                     String portType = null;
 
@@ -348,33 +384,56 @@ public class Connectrix {
                                             }
                                             comment = comment
                                                     .replace("master", "MASTER")
-                                                    .replace(" ", "");
+                                                    .replace(" ", "")
+                                                    .replace("FID"+fid, "");
                                         }
                                     }
-                                    writeLineToWorkbook(switchname, fid, index, slot, port, wwn, portname, alias, comment);
+
+                                    if (createPortnames){
+                                        //will be implemented
+//                                        sw.setPortname(fid, index, alias);
+                                    }else {
+                                        writeLineToWorkbook(switchname, fid, index, slot, port, wwn, portname, alias, comment);
+                                    }
+
                                 }
 
+                                //For lines with F_PORT or EX_PORT - host, storage connection
                                 if (switchPort.getPortFlag().equals(F_PORT)) {
                                     if (npiv) {
-                                        for (String w : wwns) {
-                                            wwn = w;
+                                        if (createPortnames){
+                                            int lastWwn = wwns.length -1;
+                                            wwn = wwns[lastWwn];
                                             alias = sw.getAlias(wwn);
-                                            writeLineToWorkbook(switchname, fid, index, slot, port, wwn, portname, alias, comment);
+                                            sw.setPortname(fid, index, alias);
+                                        }else {
+                                            for (String w : wwns) {
+                                                wwn = w;
+                                                alias = sw.getAlias(wwn);
+                                                writeLineToWorkbook(switchname, fid, index, slot, port, wwn, portname, alias, comment);
+                                            }
                                         }
+
                                     } else {
                                         if (wwns.length == 1) {
                                             wwn = wwns[0];
                                         }
                                         alias = sw.getAlias(wwn);
-                                        writeLineToWorkbook(switchname, fid, index, slot, port, wwn, portname, alias, comment);
+
+                                        if (createPortnames){
+                                            sw.setPortname(fid, index, alias);
+                                        }else {
+                                            writeLineToWorkbook(switchname, fid, index, slot, port, wwn, portname, alias, comment);
+                                        }
                                     }
                                 }
                             }
                         }
                     }
 
-                    ExcelWorkbook.getInstance().setInFrozenState(false, switchname);
-
+                    if  (!createPortnames){
+                        ExcelWorkbook.getInstance().setInFrozenState(false, switchname);
+                    }
 
 
                 sw.disconnect();

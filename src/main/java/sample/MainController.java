@@ -1,6 +1,5 @@
 package sample;
 
-import concurrency.ThreadRegister;
 import core.Connectrix;
 import io.*;
 import javafx.application.Platform;
@@ -28,6 +27,9 @@ public class MainController {
     private Button runButton;
 
     @FXML
+    private ChoiceBox<String> setModeChoiceBox;
+
+    @FXML
     private TextArea textArea;
 
     @FXML
@@ -50,6 +52,10 @@ public class MainController {
 
     private static final String RUN_BUTTON_LABEL = "Run";
     private static final String STOP_BUTTON_LABEL = "STOP";
+    private static final String CREATE_DOCUMENTATION = "Create Documentation";
+    private static final String CREATE_PORTNAMES = "Create Portnames";
+
+
     private boolean connectrixIsRunning;
 
     public void initialize(){
@@ -64,7 +70,7 @@ public class MainController {
             buttonsInactive(true);
 
             try {
-                Thread.sleep(2000);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -76,14 +82,32 @@ public class MainController {
                 e.printStackTrace();
             }
 
+
+            setModeChoiceBox.getItems().addAll(CREATE_DOCUMENTATION, CREATE_PORTNAMES);
+            Platform.runLater(() -> setModeChoiceBox.getSelectionModel().select(0));
+
             UserProperties.getInstance().initialize();
             Connectrix.getInstance().readHostList();
 
+            System.out.println();
             System.out.println("Check done, please continue");
 
             buttonsInactive(false);
         });
         thread.start();
+    }
+
+    @FXML
+    public void onSetModeChoiceBoxClicked(){
+        if (setModeChoiceBox.getValue().equals(CREATE_DOCUMENTATION)){
+            Connectrix.getInstance().setCreatePortnames(false);
+        }
+
+        if (setModeChoiceBox.getValue().equals(CREATE_PORTNAMES)){
+            Connectrix.getInstance().setCreatePortnames(true);
+        }
+
+
     }
 
     @FXML
@@ -95,23 +119,28 @@ public class MainController {
             Thread thread = new Thread(() -> {
                 MainController.this.buttonsInactive(true);
 
-                    if (ExcelWorkbook.getInstance().isWorkbookLoaded() && UserProperties.getInstance().credentialsSet()) {
-                        Connectrix.getInstance().start();
-                        MainController.this.buttonsInactive(false);
-                    }
+                if (!UserProperties.getInstance().credentialsSet()) {
+                    System.out.println();
+                    System.out.println("Login credentials not set.");
+                    System.out.println("Please run: Edit => User settings");
+                }
 
+                //Run main process
+                if (Connectrix.getInstance().getCreatePortnames()){    //to set portnames on switches
+                    if (UserProperties.getInstance().credentialsSet()) {
+                        Connectrix.getInstance().start();
+                    }
+                }else { //to create excel documentation
                     if (!ExcelWorkbook.getInstance().isWorkbookLoaded()) {
                         System.out.println();
                         System.out.println("No Workbook loaded!");
                         System.out.println("Please load it");
                     }
 
-                    if (!UserProperties.getInstance().credentialsSet()) {
-                        System.out.println();
-                        System.out.println("Login credentials not set.");
-                        System.out.println("Please run: Edit => User settings");
+                    if (ExcelWorkbook.getInstance().isWorkbookLoaded() && UserProperties.getInstance().credentialsSet()) {
+                        Connectrix.getInstance().start();
                     }
-
+                }
 
                 MainController.this.buttonsInactive(false);
                 connectrixIsRunning = false;
@@ -294,7 +323,7 @@ public class MainController {
 
     @FXML
     public void onHelpAboutClicked(){
-        showTextDialog("about.txt", "About program", false, false, 100.0, 175.0,275.0);
+        showTextDialog("about.txt", "About program", false, false, 275.0, 275.0,275.0);
     }
 
     private void showTextDialog(String fileName, String title, Boolean isEditable, Boolean hasCancelButton, Double prefHeight, Double prefWidth, Double maxWidth) {
@@ -359,6 +388,7 @@ public class MainController {
 //            });
 //        }
         runButton.setDisable(active);
+        setModeChoiceBox.setDisable(active);
         menuBar.setDisable(active);
     }
 

@@ -1,1 +1,7 @@
-Conectrixer v1.0
+CONNECTRIXER
+
+Version: 2.0
+
+Credits:
+- App developed by Ladislav Sefcik (sefcikL@t-systems.com; ladislav.sefcik@gmail.com)
+- Icon made by Freepik(http://www.freepik.com) from www.flaticon.com
